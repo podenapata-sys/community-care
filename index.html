@@ -125,7 +125,8 @@
     color: var(--indigo); font-size: 30px; font-weight: 700;
   }
   .doc .spec { color: var(--cyan); font-weight: 600; font-size: 14px; }
-  .doc .time { font-size: 13px; color: var(--muted); margin: 6px 0 14px; }
+  .doc .deg { font-size: 12px; color: var(--muted); margin: 2px auto 4px; display: inline-block; }
+  .doc .time { font-size: 13px; color: var(--muted); margin: 6px auto 14px; display: table; }
 
   /* Booking */
   .book { background: var(--card); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
@@ -238,9 +239,9 @@
       <div class="hours-row"><span data-bn="শনি – বৃহস্পতি" data-en="Sat – Thu"></span><span class="ph">9:00 AM – 10:00 PM</span></div>
       <div class="hours-row"><span data-bn="শুক্রবার" data-en="Friday"></span><span class="ph">3:00 PM – 10:00 PM</span></div>
       <div class="hours-row"><span data-bn="ডায়াগনস্টিক রিপোর্ট" data-en="Report delivery"></span><span class="ph">Same day</span></div>
-      <a href="#" class="emergency js-call">
+      <a href="#" class="emergency js-emergency">
         <span data-bn="🚑 জরুরি প্রয়োজনে" data-en="🚑 Emergency"></span>
-        <span class="js-phone-text ph">01XXX-XXXXXX</span>
+        <span class="js-emergency-text ph">01XXX-XXXXXX</span>
       </a>
     </div>
   </div>
@@ -315,7 +316,7 @@
         </div>
         <div class="contact-item">
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></div>
-          <div><b data-bn="ফোন" data-en="Phone"></b><span class="js-phone-list ph">01XXX-XXXXXX</span></div>
+          <div><b data-bn="ফোন" data-en="Phone"></b><span><span data-bn="রিসেপশন" data-en="Reception"></span>: <span class="js-reception-text ph">01XXX-XXXXXX</span></span><br><span><span data-bn="জরুরি" data-en="Emergency"></span>: <span class="js-emergency-text ph">01XXX-XXXXXX</span></span></div>
         </div>
         <div class="contact-item">
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
@@ -351,9 +352,10 @@
    Everything marked PLACEHOLDER shows a dashed orange outline on the page.
    ===================================================================== */
 const CONFIG = {
-  // PLACEHOLDER: real numbers from the hospital (digits only, BD format)
-  phones: [],                 // e.g. ["01XXXXXXXXX", "01XXXXXXXXX"]
-  whatsapp: "",               // e.g. "8801XXXXXXXXX" (country code, no +)
+  // Numbers from the hospital (digits only, 11-digit BD format)
+  reception: "01337661299",
+  emergency: "01901448954",
+  whatsapp: "",               // e.g. "8801XXXXXXXXX" (country code, no +); falls back to reception
 
   // Make.com webhook that receives bookings -> Google Sheet + WhatsApp/SMS confirm.
   // Leave empty for demo mode (form shows success without sending anything).
@@ -373,9 +375,15 @@ const CONFIG = {
 
   // PLACEHOLDER: real doctor names, degrees and chamber times from the hospital.
   doctors: [
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", sbn: "মেডিসিন বিশেষজ্ঞ", sen: "Medicine Specialist", tbn: "শনি–বৃহস্পতি, বিকাল ৪টা–রাত ৮টা", ten: "Sat–Thu, 4 PM – 8 PM" },
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", sbn: "হৃদরোগ বিশেষজ্ঞ",  sen: "Cardiologist",         tbn: "রবি, মঙ্গল, বৃহস্পতি, সন্ধ্যা ৬টা", ten: "Sun, Tue, Thu, 6 PM" },
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", sbn: "গাইনি বিশেষজ্ঞ",   sen: "Gynaecologist",        tbn: "শনি–বুধ, বিকাল ৩টা–৭টা",        ten: "Sat–Wed, 3 PM – 7 PM" }
+    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "মেডিসিন বিশেষজ্ঞ",       sen: "Medicine Specialist",   tbn: "শনি–বৃহস্পতি, বিকাল ৪টা–রাত ৮টা", ten: "Sat–Thu, 4 PM – 8 PM" },
+    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "হৃদরোগ বিশেষজ্ঞ",        sen: "Cardiologist",          tbn: "রবি, মঙ্গল, বৃহস্পতি, সন্ধ্যা ৬টা", ten: "Sun, Tue, Thu, 6 PM" },
+    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "গাইনি ও প্রসূতি বিশেষজ্ঞ", sen: "Gynaecologist",         tbn: "শনি–বুধ, বিকাল ৩টা–৭টা",        ten: "Sat–Wed, 3 PM – 7 PM" },
+    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "শিশু বিশেষজ্ঞ",          sen: "Paediatrician",         tbn: "শনি–বৃহস্পতি, সকাল ১০টা–দুপুর ১টা", ten: "Sat–Thu, 10 AM – 1 PM" },
+    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "সার্জারি বিশেষজ্ঞ",       sen: "Surgeon",               tbn: "রবি, মঙ্গল, বৃহস্পতি, বিকাল ৫টা",  ten: "Sun, Tue, Thu, 5 PM" },
+    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "অর্থোপেডিক বিশেষজ্ঞ",    sen: "Orthopaedic Specialist", tbn: "শনি, সোম, বুধ, সন্ধ্যা ৬টা–রাত ৯টা", ten: "Sat, Mon, Wed, 6 PM – 9 PM" },
+    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "নাক-কান-গলা বিশেষজ্ঞ",   sen: "ENT Specialist",        tbn: "শনি–বুধ, বিকাল ৪টা–৭টা",        ten: "Sat–Wed, 4 PM – 7 PM" },
+    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "চর্ম ও যৌন বিশেষজ্ঞ",     sen: "Dermatologist",         tbn: "রবি, মঙ্গল, বৃহস্পতি, সন্ধ্যা ৭টা",  ten: "Sun, Tue, Thu, 7 PM" },
+    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "BDS, ...",  sbn: "দন্ত বিশেষজ্ঞ",           sen: "Dental Surgeon",        tbn: "শনি–বৃহস্পতি, বিকাল ৩টা–রাত ৮টা", ten: "Sat–Thu, 3 PM – 8 PM" }
   ]
 };
 /* ===================================================================== */
@@ -409,8 +417,9 @@ function renderLists() {
     <div class="card doc">
       <div class="avatar ph">${esc(d.initials)}</div>
       <h3 class="ph">${esc(lang === "bn" ? d.bn : d.en)}</h3>
+      ${d.deg ? `<div class="deg ph">${esc(d.deg)}</div>` : ""}
       <div class="spec">${esc(lang === "bn" ? d.sbn : d.sen)}</div>
-      <div class="time">🕒 ${esc(lang === "bn" ? d.tbn : d.ten)}</div>
+      <div class="time ph">🕒 ${esc(lang === "bn" ? d.tbn : d.ten)}</div>
       <a href="#book" class="btn btn-primary btn-sm">${lang === "bn" ? "সিরিয়াল নিন" : "Book"}</a>
     </div>`).join("");
 
@@ -430,12 +439,15 @@ function applyLang() {
 }
 
 function applyContacts() {
-  const primary = CONFIG.phones[0];
-  if (primary) {
-    document.querySelectorAll(".js-call").forEach(a => a.href = "tel:+88" + primary);
-    document.querySelectorAll(".js-phone-text").forEach(el => { el.textContent = fmtPhone(primary); el.classList.remove("ph"); });
-    document.querySelectorAll(".js-phone-list").forEach(el => { el.textContent = CONFIG.phones.map(fmtPhone).join(", "); el.classList.remove("ph"); });
-  }
+  const valid = p => /^01[3-9]\d{8}$/.test(p || "");
+  const setNumber = (linkSel, textSel, num) => {
+    if (!valid(num)) return;
+    document.querySelectorAll(linkSel).forEach(a => a.href = "tel:+88" + num);
+    document.querySelectorAll(textSel).forEach(el => { el.textContent = fmtPhone(num); el.classList.remove("ph"); });
+  };
+  setNumber(".js-call", ".js-reception-text", CONFIG.reception);
+  setNumber(".js-emergency", ".js-emergency-text", CONFIG.emergency);
+  const primary = valid(CONFIG.reception) ? CONFIG.reception : "";
   const wa = CONFIG.whatsapp || (primary ? "88" + primary : "");
   document.querySelectorAll(".js-wa").forEach(a => {
     a.href = wa ? `https://wa.me/${wa}?text=${encodeURIComponent("আসসালামু আলাইকুম, আমি একটি অ্যাপয়েন্টমেন্ট নিতে চাই।")}` : "#book";
