@@ -6,12 +6,18 @@
 <title>Community Care Hospital & Diagnostic — Khulna</title>
 <meta name="description" content="Community Care Hospital & Diagnostic, Tetultola Mor, Khulna. Book doctor appointments and diagnostic tests online.">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#0d2470">
+<link rel="icon" type="image/png" href="assets/logo-mark.png">
+<link rel="apple-touch-icon" href="assets/logo-mark.png">
+<meta property="og:title" content="কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক">
+<meta property="og:description" content="তেঁতুলতলা মোড়, খুলনা — অনলাইনে ডাক্তারের সিরিয়াল নিন">
+<meta property="og:image" content="assets/logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --navy: #1e2a78;
-    --indigo: #2f3fb0;
-    --cyan: #1fb6e8;
+    --navy: #0d2470;
+    --indigo: #1d3ea6;
+    --cyan: #13b6e2;
     --cyan-soft: #e6f7fd;
     --ink: #14183a;
     --muted: #5b6285;
@@ -41,13 +47,8 @@
   header { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
   .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 12px; }
   .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-  .logo {
-    width: 42px; height: 42px; border-radius: 50%; flex: none;
-    background: linear-gradient(135deg, var(--cyan), var(--indigo));
-    display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 18px;
-  }
-  .brand-name { font-weight: 700; color: var(--navy); line-height: 1.15; font-size: 17px; }
-  .brand-sub { font-size: 12px; color: var(--muted); }
+  .brand img { height: 46px; width: auto; display: block; }
+  .foot-logo { height: 36px; width: auto; display: block; margin-bottom: 8px; }
   .nav-links { display: flex; gap: 22px; font-weight: 500; color: var(--muted); }
   .nav-links a:hover { color: var(--indigo); }
   .nav-right { display: flex; gap: 8px; align-items: center; }
@@ -187,7 +188,7 @@
     .g4 .card { padding: 16px; }
     .hero { padding: 44px 0 52px; }
     section { padding: 52px 0; }
-    .brand-sub { display: none; }
+    .brand img { height: 38px; }
     .nav-right .btn { display: none; }
   }
 </style>
@@ -199,11 +200,7 @@
 <header>
   <div class="wrap nav">
     <a href="#" class="brand">
-      <div class="logo">C</div>
-      <div>
-        <div class="brand-name" data-bn="কমিউনিটি কেয়ার" data-en="Community Care"></div>
-        <div class="brand-sub" data-bn="হাসপাতাল এন্ড ডায়াগনস্টিক" data-en="Hospital & Diagnostic"></div>
-      </div>
+      <img src="assets/logo.png" width="178" height="46" alt="কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক — Community Care Hospital & Diagnostic">
     </a>
     <nav class="nav-links">
       <a href="#services" data-bn="সেবাসমূহ" data-en="Services"></a>
@@ -332,7 +329,7 @@
 
 <footer>
   <div class="wrap foot">
-    <span>© <span id="yr"></span> <span data-bn="কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক" data-en="Community Care Hospital & Diagnostic"></span></span>
+    <span><img class="foot-logo" src="assets/logo-light.png" width="140" height="36" alt="কমিউনিটি কেয়ার">©<span id="yr"></span> <span data-bn="কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক" data-en="Community Care Hospital & Diagnostic"></span></span>
     <span data-bn="তেঁতুলতলা মোড়, খুলনা" data-en="Tetultola Mor, Khulna"></span>
   </div>
 </footer>
