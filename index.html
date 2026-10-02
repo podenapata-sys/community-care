@@ -127,7 +127,18 @@
   }
   .doc .spec { color: var(--cyan); font-weight: 600; font-size: 14px; }
   .doc .deg { font-size: 12px; color: var(--muted); margin: 2px auto 4px; display: inline-block; }
-  .doc .time { font-size: 13px; color: var(--muted); margin: 6px auto 14px; display: table; }
+  .doc { display: flex; flex-direction: column; align-items: center; }
+  .doc .work { font-size: 13px; color: var(--muted); margin: 8px 0 14px; }
+  .doc .btn { margin-top: auto; }
+  .doc .call-link { font-size: 12px; color: var(--indigo); margin-top: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 24px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--card); color: var(--navy); border-radius: 999px;
+    padding: 7px 14px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .chip span { color: var(--muted); font-size: 12px; }
+  .chip.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .chip.on span { color: rgba(255,255,255,.75); }
 
   /* Booking */
   .book { background: var(--card); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
@@ -226,7 +237,7 @@
         <a href="#" class="btn btn-ghost js-call" data-bn="📞 কল করুন" data-en="📞 Call Us"></a>
       </div>
       <div class="hero-stats">
-        <div class="stat"><b class="ph">XX+</b><span data-bn="বিশেষজ্ঞ ডাক্তার" data-en="Specialist doctors"></span></div>
+        <div class="stat"><b>18+</b><span data-bn="বিশেষজ্ঞ ডাক্তার" data-en="Specialist doctors"></span></div>
         <div class="stat"><b class="ph">XX+</b><span data-bn="ডায়াগনস্টিক টেস্ট" data-en="Diagnostic tests"></span></div>
         <div class="stat"><b>24/7</b><span data-bn="জরুরি সেবা" data-en="Emergency"></span></div>
       </div>
@@ -259,8 +270,9 @@
   <div class="wrap">
     <div class="sec-head">
       <div class="kicker" data-bn="বিশেষজ্ঞ ডাক্তার" data-en="SPECIALISTS"></div>
-      <h2 data-bn="অভিজ্ঞ ডাক্তারদের চেম্বার সময়সূচি" data-en="Doctor chamber schedule"></h2>
+      <h2 data-bn="আমাদের অভিজ্ঞ বিশেষজ্ঞ ডাক্তারগণ" data-en="Our experienced specialists"></h2>
     </div>
+    <div class="chips" id="docFilter"></div>
     <div class="grid g3" id="doctorsGrid"></div>
   </div>
 </section>
@@ -309,11 +321,11 @@
       <div>
         <div class="contact-item">
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
-          <div><b data-bn="ঠিকানা" data-en="Address"></b><span data-bn="১৬ কেডিএ এভিনিউ, মোহসেন টাওয়ার, তেঁতুলতলা মোড়, খুলনা" data-en="16 KDA Avenue, Mohsen Tower, Tetultola Mor, Khulna"></span></div>
+          <div><b data-bn="ঠিকানা" data-en="Address"></b><span data-bn="১৯ কেডিএ এভিনিউ, মোহসেন টাওয়ার, তেঁতুলতলা মোড়, খুলনা" data-en="19 KDA Avenue, Mohsen Tower, Tetultola Mor, Khulna"></span></div>
         </div>
         <div class="contact-item">
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></div>
-          <div><b data-bn="ফোন" data-en="Phone"></b><span><span data-bn="রিসেপশন" data-en="Reception"></span>: <span class="js-reception-text ph">01XXX-XXXXXX</span></span><br><span><span data-bn="জরুরি" data-en="Emergency"></span>: <span class="js-emergency-text ph">01XXX-XXXXXX</span></span></div>
+          <div><b data-bn="ফোন" data-en="Phone"></b><span><span data-bn="রিসেপশন" data-en="Reception"></span>: <span class="js-reception-text ph">01XXX-XXXXXX</span></span><br><span><span data-bn="জরুরি" data-en="Emergency"></span>: <span class="js-emergency-text ph">01XXX-XXXXXX</span></span><br><span><span data-bn="ডাক্তারের সিরিয়াল" data-en="Doctor serial"></span>: <span class="js-serial-list"></span></span></div>
         </div>
         <div class="contact-item">
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
@@ -352,6 +364,7 @@ const CONFIG = {
   // Numbers from the hospital (digits only, 11-digit BD format)
   reception: "01337661299",
   emergency: "01901448954",
+  serial: ["01917949443", "01711383154"],   // from the doctor list flyer
   whatsapp: "",               // e.g. "8801XXXXXXXXX" (country code, no +); falls back to reception
 
   // Make.com webhook that receives bookings -> Google Sheet + WhatsApp/SMS confirm.
@@ -361,7 +374,7 @@ const CONFIG = {
   // PLACEHOLDER: confirm with the hospital
   services: [
     { icon: "steth", bn: "মেডিসিন বিশেষজ্ঞ",       en: "General Medicine",   dbn: "জ্বর, ডায়াবেটিস, প্রেশার",          den: "Fever, diabetes, blood pressure" },
-    { icon: "heart", bn: "হৃদরোগ (কার্ডিওলজি)",    en: "Cardiology",         dbn: "ECG, ইকো, হার্ট চেকআপ",            den: "ECG, echo, heart check-up" },
+    { icon: "heart", bn: "কিডনি (নেফ্রোলজি)",      en: "Kidney (Nephrology)", dbn: "কিডনি রোগের পরীক্ষা ও চিকিৎসা",      den: "Kidney check-ups and treatment" },
     { icon: "lab",   bn: "প্যাথলজি ল্যাব",         en: "Pathology Lab",      dbn: "রক্ত, প্রস্রাব ও অন্যান্য টেস্ট",    den: "Blood, urine and other tests" },
     { icon: "scan",  bn: "আল্ট্রাসনোগ্রাম ও এক্স-রে", en: "Ultrasound & X-ray", dbn: "দ্রুত ও নির্ভুল রিপোর্ট",           den: "Fast, accurate reports" },
     { icon: "baby",  bn: "গাইনি ও প্রসূতি",        en: "Gynae & Obstetrics", dbn: "প্রসূতি সেবা ও চেকআপ",             den: "Maternity care & check-ups" },
@@ -370,17 +383,42 @@ const CONFIG = {
     { icon: "amb",   bn: "২৪/৭ জরুরি বিভাগ",        en: "24/7 Emergency",     dbn: "যেকোনো সময় জরুরি সেবা",            den: "Emergency care any time" }
   ],
 
-  // PLACEHOLDER: real doctor names, degrees and chamber times from the hospital.
+  // Departments used for the doctor filter chips (order = chip order).
+  depts: {
+    med:    { bn: "মেডিসিন",       en: "Medicine" },
+    surg:   { bn: "সার্জারি",       en: "Surgery" },
+    gyn:    { bn: "গাইনি",         en: "Gynae" },
+    child:  { bn: "শিশু",          en: "Child" },
+    ortho:  { bn: "অর্থোপেডিক",     en: "Orthopaedics" },
+    skin:   { bn: "চর্ম ও যৌন",     en: "Skin" },
+    ent:    { bn: "নাক-কান-গলা",    en: "ENT" },
+    kidney: { bn: "কিডনি",         en: "Kidney" },
+    uro:    { bn: "ইউরোলজি",       en: "Urology" },
+    neuro:  { bn: "নিউরো সার্জারি",  en: "Neurosurgery" },
+    radio:  { bn: "আল্ট্রাসাউন্ড",   en: "Ultrasound" }
+  },
+
+  // From the hospital's doctor list (PDF). Names exactly as printed; chamber
+  // times not provided yet. `unconfirmed` = partly illegible in the source.
   doctors: [
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "মেডিসিন বিশেষজ্ঞ",       sen: "Medicine Specialist",   tbn: "শনি–বৃহস্পতি, বিকাল ৪টা–রাত ৮টা", ten: "Sat–Thu, 4 PM – 8 PM" },
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "হৃদরোগ বিশেষজ্ঞ",        sen: "Cardiologist",          tbn: "রবি, মঙ্গল, বৃহস্পতি, সন্ধ্যা ৬টা", ten: "Sun, Tue, Thu, 6 PM" },
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "গাইনি ও প্রসূতি বিশেষজ্ঞ", sen: "Gynaecologist",         tbn: "শনি–বুধ, বিকাল ৩টা–৭টা",        ten: "Sat–Wed, 3 PM – 7 PM" },
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "শিশু বিশেষজ্ঞ",          sen: "Paediatrician",         tbn: "শনি–বৃহস্পতি, সকাল ১০টা–দুপুর ১টা", ten: "Sat–Thu, 10 AM – 1 PM" },
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "সার্জারি বিশেষজ্ঞ",       sen: "Surgeon",               tbn: "রবি, মঙ্গল, বৃহস্পতি, বিকাল ৫টা",  ten: "Sun, Tue, Thu, 5 PM" },
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "অর্থোপেডিক বিশেষজ্ঞ",    sen: "Orthopaedic Specialist", tbn: "শনি, সোম, বুধ, সন্ধ্যা ৬টা–রাত ৯টা", ten: "Sat, Mon, Wed, 6 PM – 9 PM" },
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "নাক-কান-গলা বিশেষজ্ঞ",   sen: "ENT Specialist",        tbn: "শনি–বুধ, বিকাল ৪টা–৭টা",        ten: "Sat–Wed, 4 PM – 7 PM" },
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "MBBS, ...", sbn: "চর্ম ও যৌন বিশেষজ্ঞ",     sen: "Dermatologist",         tbn: "রবি, মঙ্গল, বৃহস্পতি, সন্ধ্যা ৭টা",  ten: "Sun, Tue, Thu, 7 PM" },
-    { initials: "Dr", bn: "ডাক্তারের নাম", en: "Doctor Name", deg: "BDS, ...",  sbn: "দন্ত বিশেষজ্ঞ",           sen: "Dental Surgeon",        tbn: "শনি–বৃহস্পতি, বিকাল ৩টা–রাত ৮টা", ten: "Sat–Thu, 3 PM – 8 PM" }
+    { name: "Dr. Sharup Chandra Poddar", dept: "med", deg: "MBBS, BCS (Health), FCPS (Medicine), MD (Hematology), MACP (USA)", sbn: "মেডিসিন ও রক্তরোগ বিশেষজ্ঞ", sen: "Medicine & Hematology Specialist", work: "Khulna Medical College Hospital, Khulna" },
+    { name: "ডাঃ এস এম মনির হোসেন (রাজা)", dept: "neuro", deg: "এমবিবিএস, বিসিএস (স্বাস্থ্য), এমএস (নিউরোসার্জারি), সহকারী অধ্যাপক", sbn: "নিউরো ও স্পাইন সার্জন", sen: "Neuro & Spine Surgeon", work: "খুলনা বিশেষায়িত হাসপাতাল, খুলনা", unconfirmed: true },
+    { name: "Tanmoy Mallick", dept: "med", deg: "MBBS, BCS (H), Medicine Final Part, Medical Officer", sbn: "মেডিসিন", sen: "Medicine", work: "Upazila Health Complex, Dacope, Khulna" },
+    { name: "Dr. Sohelee Sarmin", dept: "gyn", deg: "MBBS, BCS (Health), FCPS (Gynae & Obs)", sbn: "গাইনি ও প্রসূতি বিশেষজ্ঞ ও সার্জন", sen: "Gynae & Obs Specialist & Surgeon", work: "250 Bed General Hospital, Khulna" },
+    { name: "Dr. Md. Shahidul Islam Mukul", dept: "surg", deg: "MBBS, FCPS (Surgery), FACS (USA), Assistant Professor of Surgery", sbn: "সার্জারি বিশেষজ্ঞ", sen: "Surgery Specialist", work: "Khulna Medical College & Hospital, Khulna" },
+    { name: "ডাঃ ইফতেখার বিন রাজ্জাক", dept: "radio", deg: "এমবিবিএস, বিসিএস (স্বাস্থ্য), এম.ফিল, রেডিওলজি ও ইমেজিং-এ পোস্ট-গ্র্যাজুয়েট ট্রেনিং", sbn: "আল্ট্রাসাউন্ড ও রেডিওলজি", sen: "Ultrasound & Radiology", work: "লেকচারার, খুলনা মেডিকেল কলেজ" },
+    { name: "Dr. Mithun Debnath", dept: "child", deg: "MBBS, BCS (H), MCPS (Pediatric), MD (Pediatric)", sbn: "নবজাতক, শিশু ও কিশোর রোগ বিশেষজ্ঞ", sen: "Newborn, Child & Adolescent Specialist", work: "Upazila Health Complex, Dacope, Khulna" },
+    { name: "Dr. Md. Sohel Rana", dept: "kidney", deg: "MBBS, BCS (Health), MD (Nephrology)", sbn: "কিডনি রোগ ও মেডিসিন বিশেষজ্ঞ", sen: "Kidney Disease & Medicine Specialist", work: "Khulna Medical College Hospital, Khulna" },
+    { name: "Dr. Aniruddha Sarder", dept: "surg", deg: "MBBS, BCS (Health), FCPS (Surgery), FACS (America)", sbn: "জেনারেল, ল্যাপারোস্কপিক, কোলোরেক্টাল ও ব্রেস্ট সার্জন", sen: "General, Laparoscopic, Colorectal & Breast Surgeon", work: "Khulna Medical College & Hospital, Khulna" },
+    { name: "Dr. Palash Kumar Aich", dept: "ortho", deg: "MBBS (RMC), Ortho-Surgery (BSMMU), Assistant Professor & Head of Department", sbn: "অর্থোপেডিক সার্জন", sen: "Orthopaedic Surgeon", work: "Gazi Medical College, Khulna" },
+    { name: "Dr. Abul Kalam Azad", dept: "uro", deg: "MBBS, BCS (Health), MS (Urology), Assistant Professor", sbn: "ইউরোলজি (কিডনি ও মূত্রনালী) সার্জন", sen: "Urology Surgeon", work: "Khulna Medical College & Hospital, Khulna" },
+    { name: "Dr. Anup Kumar", dept: "ortho", deg: "MBBS, BCS (Health), MS (Orthopedic Surgery), trained in Spain", sbn: "অর্থোপেডিক ও ট্রমা বিশেষজ্ঞ", sen: "Orthopaedic & Traumatology Specialist", work: "Khulna Medical College Hospital, Khulna" },
+    { name: "Dr. Sabina Chowdhury", dept: "gyn", deg: "MBBS, BCS (Health), FCPS (Gynae & Obs)", sbn: "গাইনি ও প্রসূতি বিশেষজ্ঞ ও সার্জন", sen: "Gynae & Obs Specialist & Surgeon", work: "Khulna Medical College & Hospital, Khulna" },
+    { name: "Dr. Abdullah Al Mamun", dept: "skin", deg: "MBBS, BCS (Health), DDV (Skin & Venereal Disease)", sbn: "চর্ম, যৌন, এলার্জি ও কসমেটিক সার্জন", sen: "Skin, Sex, Allergy Specialist & Cosmetic Surgeon", work: "Khulna Medical College Hospital, Khulna" },
+    { name: "Dr. Md. Younus Ali", dept: "skin", deg: "MBBS, BCS (Health), DDV (BSMMU)", sbn: "চর্ম, এলার্জি ও যৌন রোগ বিশেষজ্ঞ", sen: "Skin, Allergy & Sex Diseases Specialist", work: "Khulna Medical College & Hospital, Khulna" },
+    { name: "Dr. Purobi Das Bakshi", dept: "gyn", deg: "MBBS, BCS (H), MS (Gynae & Obs)", sbn: "গাইনি ও প্রসূতি বিশেষজ্ঞ সার্জন", sen: "Gynae & Obs Specialist Surgeon", work: "Khulna Medical College & Hospital, Khulna" },
+    { name: "Dr. Md. Iqbal Hossain", dept: "med", deg: "MBBS, BCS (Health), PGT (Medicine), Medical Officer", sbn: "মেডিসিন", sen: "Medicine", work: "Khulna Medical College Hospital, Khulna" },
+    { name: "Dr. Debnath Talukder", dept: "ent", deg: "MBBS, BCS (Health), MS (ENT), FACS", sbn: "নাক-কান-গলা ও হেড-নেক সার্জন", sen: "ENT, Head & Neck Surgery Specialist", work: "Khulna Medical College Hospital, Khulna" }
   ]
 };
 /* ===================================================================== */
@@ -410,22 +448,44 @@ function renderLists() {
       <p>${esc(lang === "bn" ? s.dbn : s.den)}</p>
     </div>`).join("");
 
-  document.getElementById("doctorsGrid").innerHTML = CONFIG.doctors.map(d => `
+  const present = Object.keys(CONFIG.depts).filter(k => CONFIG.doctors.some(d => d.dept === k));
+  document.getElementById("docFilter").innerHTML = ["all", ...present].map(k => {
+    const n = k === "all" ? CONFIG.doctors.length : CONFIG.doctors.filter(d => d.dept === k).length;
+    const label = k === "all" ? (lang === "bn" ? "সব ডাক্তার" : "All") : CONFIG.depts[k][lang];
+    return `<button type="button" class="chip${k === docFilter ? " on" : ""}" data-dept="${k}">${esc(label)} <span>${n}</span></button>`;
+  }).join("");
+
+  document.getElementById("doctorsGrid").innerHTML = CONFIG.doctors.map((d, i) => d.dept !== docFilter && docFilter !== "all" ? "" : `
     <div class="card doc">
-      <div class="avatar ph">${esc(d.initials)}</div>
-      <h3 class="ph">${esc(lang === "bn" ? d.bn : d.en)}</h3>
-      ${d.deg ? `<div class="deg ph">${esc(d.deg)}</div>` : ""}
+      <div class="avatar">${esc(initials(d.name))}</div>
+      <h3>${esc(d.name)}</h3>
+      <div class="deg">${esc(d.deg)}</div>
       <div class="spec">${esc(lang === "bn" ? d.sbn : d.sen)}</div>
-      <div class="time ph">🕒 ${esc(lang === "bn" ? d.tbn : d.ten)}</div>
-      <a href="#book" class="btn btn-primary btn-sm">${lang === "bn" ? "সিরিয়াল নিন" : "Book"}</a>
+      <div class="work${d.unconfirmed ? " ph" : ""}">🏥 ${esc(d.work)}</div>
+      <a href="#book" class="btn btn-primary btn-sm js-book" data-doc="${i}">${lang === "bn" ? "সিরিয়াল নিন" : "Book"}</a>
+      <a href="#" class="call-link js-call">${lang === "bn" ? "📞 চেম্বারের সময় জানতে কল করুন" : "📞 Call for chamber time"}</a>
     </div>`).join("");
 
   const sel = document.getElementById("f-service");
-  const opts = [...CONFIG.doctors.map(d => lang === "bn" ? `${d.bn} — ${d.sbn}` : `${d.en} — ${d.sen}`),
+  const opts = [...CONFIG.doctors.map(d => `${d.name} — ${lang === "bn" ? d.sbn : d.sen}`),
                 ...CONFIG.services.map(s => lang === "bn" ? s.bn : s.en)];
   sel.innerHTML = `<option value="">${lang === "bn" ? "বেছে নিন" : "Select"}</option>` +
     opts.map(o => `<option>${esc(o)}</option>`).join("");
+  applyContacts();
 }
+
+let docFilter = "all";
+const initials = name => {
+  const words = name.replace(/^(Dr\.|ডাঃ)\s*/, "").replace(/^Md\.\s*/, "").split(/\s+/);
+  return /[A-Za-z]/.test(words[0]) ? (words[0][0] + (words[1] ? words[1][0] : "")).toUpperCase() : words[0][0];
+};
+
+document.getElementById("doctors").addEventListener("click", e => {
+  const chip = e.target.closest(".chip");
+  if (chip) { docFilter = chip.dataset.dept; renderLists(); return; }
+  const book = e.target.closest(".js-book");
+  if (book) document.getElementById("f-service").selectedIndex = +book.dataset.doc + 1;
+});
 
 function applyLang() {
   document.documentElement.lang = lang;
@@ -444,6 +504,9 @@ function applyContacts() {
   };
   setNumber(".js-call", ".js-reception-text", CONFIG.reception);
   setNumber(".js-emergency", ".js-emergency-text", CONFIG.emergency);
+  document.querySelectorAll(".js-serial-list").forEach(el => {
+    el.innerHTML = CONFIG.serial.filter(valid).map(p => `<a href="tel:+88${p}">${fmtPhone(p)}</a>`).join(", ");
+  });
   const primary = valid(CONFIG.reception) ? CONFIG.reception : "";
   const wa = CONFIG.whatsapp || (primary ? "88" + primary : "");
   document.querySelectorAll(".js-wa").forEach(a => {
