@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<title>Quotation — Community Care Hospital & Diagnostic | FS Solutions</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root { --navy: #0d2470; --cyan: #13b6e2; --ink: #14183a; --muted: #5b6285; --line: #e3e7f2; --soft: #f4f7fc; --ok: #12a36b; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Hind Siliguri", "Noto Sans Bengali", "Inter", sans-serif; color: var(--ink); background: #fff; font-size: 13px; line-height: 1.5; }
+  .page { width: 210mm; min-height: 297mm; padding: 11mm 15mm 8mm; position: relative; }
+  .band { position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, var(--navy), var(--cyan)); }
+
+  .head { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; border-bottom: 2px solid var(--navy); }
+  .brand b { display: block; font-family: "Inter", sans-serif; font-size: 24px; letter-spacing: -.02em; color: var(--navy); }
+  .brand b span { color: var(--cyan); }
+  .brand small { color: var(--muted); font-size: 12px; }
+  .doc-title { text-align: right; }
+  .doc-title h1 { font-size: 20px; color: var(--navy); line-height: 1.2; }
+  .doc-title .en { font-family: "Inter", sans-serif; font-size: 11px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+  .meta { margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+  .party { background: var(--soft); border-radius: 10px; padding: 12px 14px; }
+  .party .lbl { font-size: 11px; font-weight: 600; color: var(--cyan); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .party .name { font-weight: 700; color: var(--navy); font-size: 14px; }
+  .party img { height: 30px; display: block; margin-bottom: 4px; }
+
+  h2 { font-size: 14px; color: var(--navy); margin: 11px 0 7px; display: flex; align-items: center; gap: 8px; }
+  h2::before { content: ""; width: 4px; height: 16px; background: var(--cyan); border-radius: 2px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--navy); color: #fff; font-weight: 600; text-align: left; padding: 7px 10px; font-size: 12px; }
+  th:first-child { border-radius: 6px 0 0 0; } th:last-child { border-radius: 0 6px 0 0; }
+  td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.n { width: 30px; color: var(--muted); }
+  .scope { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+  .scope div { display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+  .scope i { font-style: normal; flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 11px; display: grid; place-items: center; margin-top: 2px; }
+  .scope .sub { display: block; color: var(--muted); font-size: 11.5px; }
+  td .sub { display: block; color: var(--muted); font-size: 11.5px; }
+  .num { text-align: right; white-space: nowrap; font-weight: 600; }
+
+  .pay td { padding: 8px 10px; }
+  .status { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .paid { background: #e3f6ee; color: var(--ok); }
+  .due { background: #fff1d6; color: #9a5b00; }
+  .later { background: #e8ecf7; color: var(--navy); }
+  .row-now td { background: #fffaf0; }
+  .total td { border-bottom: 0; font-weight: 700; font-size: 14px; color: var(--navy); border-top: 2px solid var(--navy); }
+  .balance td { border-bottom: 0; color: var(--muted); font-weight: 600; padding-top: 2px; }
+
+  .callout { margin-top: 12px; background: var(--navy); color: #fff; border-radius: 10px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .callout b { font-size: 18px; color: var(--cyan); white-space: nowrap; }
+
+  ol.terms { padding-left: 18px; color: var(--ink); }
+  ol.terms li { margin-bottom: 3px; }
+
+  .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 26px; }
+  .sign div { border-top: 1px solid var(--ink); padding-top: 6px; font-size: 12px; }
+  .sign small { color: var(--muted); display: block; }
+
+  .foot { margin-top: 12px; text-align: center; font-size: 11px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 6px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="band"></div>
+
+  <div class="head">
+    <div class="brand">
+      <b>FS <span>Solutions</span></b>
+      <small>ওয়েবসাইট, অনলাইন বুকিং ও AI অটোমেশন</small>
+    </div>
+    <div class="doc-title">
+      <h1>কোটেশন ও পেমেন্ট শিডিউল</h1>
+      <div class="en">Quotation &amp; Payment Schedule</div>
+      <div class="meta">নং: <b>FSS-CC-2026-001</b> &nbsp;|&nbsp; তারিখ: <b>৪ অক্টোবর ২০২৬</b></div>
+    </div>
+  </div>
+
+  <div class="parties">
+    <div class="party">
+      <div class="lbl">প্রদানকারী / From</div>
+      <div class="name">FS Solutions</div>
+      রকিবুল ইসলাম<br>
+      📞 +880 1632-932249
+    </div>
+    <div class="party">
+      <div class="lbl">ক্লায়েন্ট / To</div>
+      <img src="../assets/logo.png" alt="কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক">
+      ১৯ কেডিএ এভিনিউ, মোহসেন টাওয়ার,<br>তেঁতুলতলা মোড়, খুলনা
+    </div>
+  </div>
+
+  <h2>প্রজেক্টের কাজের বিবরণ</h2>
+  <div class="scope">
+    <div><i>১</i><p>দ্বিভাষিক (বাংলা/ইংরেজি) মোবাইল-ফ্রেন্ডলি ওয়েবসাইট<span class="sub">লোগো ও ব্র্যান্ড রঙে, সেবাসমূহ, যোগাযোগ, Google Map</span></p></div>
+    <div><i>২</i><p>১৮ জন বিশেষজ্ঞ ডাক্তারের প্রোফাইল<span class="sub">ডিগ্রি, বিভাগ ও কর্মস্থল; বিভাগভিত্তিক ফিল্টার</span></p></div>
+    <div><i>৩</i><p>অনলাইন সিরিয়াল / অ্যাপয়েন্টমেন্ট বুকিং ফর্ম<span class="sub">রোগী ঘরে বসেই ডাক্তার বেছে সিরিয়াল নিতে পারবেন</span></p></div>
+    <div><i>৪</i><p>বুকিং ড্যাশবোর্ড<span class="sub">সব সিরিয়াল এক জায়গায় দেখা ও ম্যানেজ করা</span></p></div>
+    <div><i>৫</i><p>নতুন সিরিয়ালের নোটিফিকেশন<span class="sub">রিসেপশনের নম্বরে তাৎক্ষণিক বার্তা</span></p></div>
+    <div><i>৬</i><p>WhatsApp ও কল বাটন, জরুরি নম্বর<span class="sub">মোবাইলে এক ক্লিকে যোগাযোগ</span></p></div>
+    <div><i>৭</i><p>স্টাফ ট্রেনিং<span class="sub">ড্যাশবোর্ড ব্যবহার শেখানো</span></p></div>
+  </div>
+
+  <h2>পেমেন্ট শিডিউল</h2>
+  <table class="pay">
+    <tr><th>ধাপ</th><th>বিবরণ</th><th>অবস্থা</th><th class="num">পরিমাণ</th></tr>
+    <tr><td class="n">১</td><td>অগ্রিম</td><td><span class="status paid">✓ পরিশোধিত</span></td><td class="num">৳ ৫,০০০</td></tr>
+    <tr class="row-now"><td class="n">২</td><td>ড্যাশবোর্ডের API টোকেন, সার্ভার ও সেটআপ খরচ</td><td><span class="status due">এখন প্রদেয়</span></td><td class="num">৳ ৫,০০০</td></tr>
+    <tr><td class="n">৩</td><td>বাকি পেমেন্ট</td><td><span class="status later">ডিপ্লয়মেন্টের আগে</span></td><td class="num">৳ ১০,০০০</td></tr>
+    <tr class="total"><td></td><td colspan="2">মোট প্রজেক্ট মূল্য</td><td class="num">৳ ২০,০০০</td></tr>
+    <tr class="balance"><td></td><td colspan="2">পরিশোধিত ৳ ৫,০০০ বাদে বাকি</td><td class="num">৳ ১৫,০০০</td></tr>
+  </table>
+
+  <div class="callout">
+    <span>কাজের পরের ধাপ শুরু করতে <strong>ধাপ ২</strong>-এর পেমেন্ট প্রয়োজন</span>
+    <b>৳ ৫,০০০</b>
+  </div>
+
+  <h2>শর্তাবলি</h2>
+  <ol class="terms">
+    <li>ধাপ ২-এর পেমেন্ট ও প্রয়োজনীয় তথ্য (ডাক্তারদের চেম্বার সময় ইত্যাদি) পাওয়ার পর ৫–৭ কর্মদিবসের মধ্যে ওয়েবসাইট লাইভের জন্য প্রস্তুত হবে।</li>
+    <li>ডিজাইন ও কনটেন্টে ২ বার পর্যন্ত সংশোধন অন্তর্ভুক্ত।</li>
+    <li>সম্পূর্ণ পেমেন্টের পর ওয়েবসাইট ও ড্যাশবোর্ডের পূর্ণ মালিকানা হাসপাতালকে হস্তান্তর করা হবে।</li>
+    <li>পেমেন্ট bKash / Nagad / ব্যাংকের মাধ্যমে; অ্যাকাউন্ট নম্বর আলাদাভাবে জানানো হবে।</li>
+    <li>এই কোটেশন ১১ অক্টোবর ২০২৬ পর্যন্ত বৈধ।</li>
+  </ol>
+
+  <div class="sign">
+    <div>রকিবুল ইসলাম<small>FS Solutions</small></div>
+    <div>অনুমোদনকারী<small>কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক</small></div>
+  </div>
+
+  <div class="foot">FS Solutions &nbsp;•&nbsp; রকিবুল ইসলাম &nbsp;•&nbsp; +880 1632-932249</div>
+</div>
+</body>
+</html>
