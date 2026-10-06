@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<title>Information Checklist — Community Care Hospital & Diagnostic | FS Solutions</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root { --navy: #0d2470; --cyan: #13b6e2; --ink: #14183a; --muted: #5b6285; --line: #d9deeb; --soft: #f4f7fc; --ok: #12a36b; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Hind Siliguri", "Noto Sans Bengali", "Inter", sans-serif; color: var(--ink); background: #fff; font-size: 12.5px; line-height: 1.45; }
+  .page { width: 210mm; height: 297mm; padding: 11mm 14mm 9mm; position: relative; overflow: hidden; page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  .band { position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, var(--navy), var(--cyan)); }
+
+  .head { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; border-bottom: 2px solid var(--navy); }
+  .brand b { display: block; font-family: "Inter", sans-serif; font-size: 22px; letter-spacing: -.02em; color: var(--navy); }
+  .brand b span { color: var(--cyan); }
+  .brand small { color: var(--muted); font-size: 11.5px; }
+  .doc-title { text-align: right; }
+  .doc-title h1 { font-size: 18px; color: var(--navy); line-height: 1.25; }
+  .doc-title .en { font-family: "Inter", sans-serif; font-size: 10.5px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+  .meta { margin-top: 4px; font-size: 11.5px; color: var(--muted); }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  .intro { display: grid; grid-template-columns: 1.1fr 1fr; gap: 12px; margin: 12px 0 4px; }
+  .box { background: var(--soft); border-radius: 10px; padding: 10px 12px; }
+  .box img { height: 28px; display: block; margin-bottom: 3px; }
+  .box .lbl { font-size: 10.5px; font-weight: 600; color: var(--cyan); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+  .wa { font-weight: 700; color: var(--navy); }
+
+  h2 { font-size: 13.5px; color: var(--navy); margin: 12px 0 6px; display: flex; align-items: center; gap: 8px; }
+  h2 .no { width: 22px; height: 22px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 12px; display: grid; place-items: center; flex: none; }
+  h2 .star { margin-left: auto; font-size: 11px; font-weight: 600; background: #fff1d6; color: #9a5b00; padding: 2px 10px; border-radius: 999px; }
+  .tip { font-size: 11.5px; color: var(--muted); margin-bottom: 6px; }
+  .tip b { color: var(--ink); }
+  section { break-inside: avoid; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--navy); color: #fff; font-weight: 600; text-align: left; padding: 5px 8px; font-size: 11.5px; }
+  th:first-child { border-radius: 6px 0 0 0; } th:last-child { border-radius: 0 6px 0 0; }
+  td { border: 1px solid var(--line); padding: 0 8px; height: 29px; vertical-align: middle; }
+  td.n { width: 26px; color: var(--muted); text-align: center; }
+  td.doc { width: 37%; }
+  td.doc b { display: block; font-weight: 600; font-size: 12px; line-height: 1.2; }
+  td.doc span { color: var(--muted); font-size: 10.5px; line-height: 1.2; }
+  tr:nth-child(even) td { background: #fbfcfe; }
+
+  .field { display: flex; align-items: flex-end; gap: 8px; margin: 9px 0; }
+  .field label { white-space: nowrap; }
+  .field .ln { flex: 1; border-bottom: 1px dotted var(--muted); height: 18px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
+  .cb { display: inline-flex; align-items: center; gap: 5px; margin-right: 14px; white-space: nowrap; }
+  .cb::before { content: ""; width: 12px; height: 12px; border: 1.5px solid var(--navy); border-radius: 3px; display: inline-block; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px 10px; margin: 4px 0 8px; }
+  .confirm { border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; margin-bottom: 6px; }
+  .confirm .q { display: flex; justify-content: space-between; gap: 10px; }
+  .confirm .q span { color: var(--muted); font-size: 11.5px; }
+
+  .done { margin-top: 12px; border: 1.5px solid #bfe8d6; background: #effaf5; border-radius: 10px; padding: 9px 12px; }
+  .done .lbl { color: var(--ok); font-weight: 700; margin-bottom: 3px; }
+  .done ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 1px 16px; font-size: 11.5px; }
+  .done li::before { content: "✓ "; color: var(--ok); font-weight: 700; }
+
+  .sign { display: grid; grid-template-columns: 1.4fr 1fr; gap: 30px; margin-top: 26px; }
+  .sign div { border-top: 1px solid var(--ink); padding-top: 5px; font-size: 11.5px; }
+  .foot { position: absolute; bottom: 7mm; left: 14mm; right: 14mm; display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 5px; }
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE 1 ============ -->
+<div class="page">
+  <div class="band"></div>
+  <div class="head">
+    <div class="brand">
+      <b>FS <span>Solutions</span></b>
+      <small>ওয়েবসাইট, অনলাইন বুকিং ও AI অটোমেশন</small>
+    </div>
+    <div class="doc-title">
+      <h1>ওয়েবসাইট লাইভের জন্য প্রয়োজনীয় তথ্য</h1>
+      <div class="en">Information Checklist</div>
+      <div class="meta">রেফারেন্স: <b>FSS-CC-2026-001</b> &nbsp;|&nbsp; তারিখ: <b>৬ অক্টোবর ২০২৬</b></div>
+    </div>
+  </div>
+
+  <div class="intro">
+    <div class="box">
+      <div class="lbl">যেভাবে পূরণ করবেন</div>
+      প্রিন্ট করে হাতে লিখে দিন, অথবা প্রতিটি অংশের ছবি তুলে WhatsApp করুন:<br>
+      <span class="wa">📞 +880 1632-932249</span> (রকিবুল ইসলাম, FS Solutions)
+    </div>
+    <div class="box">
+      <div class="lbl">ক্লায়েন্ট</div>
+      <img src="../assets/logo.png" alt="কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক">
+      ১৯ কেডিএ এভিনিউ, মোহসেন টাওয়ার, তেঁতুলতলা মোড়, খুলনা
+    </div>
+  </div>
+
+  <section>
+    <h2><span class="no">১</span>ডাক্তারদের চেম্বারের সময়সূচি<span class="star">⭐ সবচেয়ে জরুরি</span></h2>
+    <p class="tip">প্রত্যেক ডাক্তারের পাশে চেম্বারের দিন, সময় ও ভিজিট ফি লিখুন। <b>চেম্বার বোর্ডের একটি পরিষ্কার ছবি পাঠালেও যথেষ্ট।</b></p>
+    <table>
+      <tr><th>#</th><th>ডাক্তার ও বিভাগ</th><th>চেম্বারের দিন</th><th>সময়</th><th>ভিজিট ফি</th></tr>
+      <tr><td class="n">১</td><td class="doc"><b>Dr. Sharup Chandra Poddar</b><span>মেডিসিন ও রক্তরোগ</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">২</td><td class="doc"><b>ডাঃ এস এম মনির হোসেন (রাজা)</b><span>নিউরো ও স্পাইন সার্জন</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">৩</td><td class="doc"><b>Tanmoy Mallick</b><span>মেডিসিন</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">৪</td><td class="doc"><b>Dr. Sohelee Sarmin</b><span>গাইনি ও প্রসূতি</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">৫</td><td class="doc"><b>Dr. Md. Shahidul Islam Mukul</b><span>সার্জারি</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">৬</td><td class="doc"><b>ডাঃ ইফতেখার বিন রাজ্জাক</b><span>আল্ট্রাসাউন্ড ও রেডিওলজি</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">৭</td><td class="doc"><b>Dr. Mithun Debnath</b><span>নবজাতক, শিশু ও কিশোর রোগ</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">৮</td><td class="doc"><b>Dr. Md. Sohel Rana</b><span>কিডনি রোগ ও মেডিসিন</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">৯</td><td class="doc"><b>Dr. Aniruddha Sarder</b><span>জেনারেল ও ল্যাপারোস্কপিক সার্জন</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">১০</td><td class="doc"><b>Dr. Palash Kumar Aich</b><span>অর্থোপেডিক সার্জন</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">১১</td><td class="doc"><b>Dr. Abul Kalam Azad</b><span>ইউরোলজি সার্জন</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">১২</td><td class="doc"><b>Dr. Anup Kumar</b><span>অর্থোপেডিক ও ট্রমা</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">১৩</td><td class="doc"><b>Dr. Sabina Chowdhury</b><span>গাইনি ও প্রসূতি</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">১৪</td><td class="doc"><b>Dr. Abdullah Al Mamun</b><span>চর্ম, যৌন ও এলার্জি</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">১৫</td><td class="doc"><b>Dr. Md. Younus Ali</b><span>চর্ম, এলার্জি ও যৌন রোগ</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">১৬</td><td class="doc"><b>Dr. Purobi Das Bakshi</b><span>গাইনি ও প্রসূতি</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">১৭</td><td class="doc"><b>Dr. Md. Iqbal Hossain</b><span>মেডিসিন</span></td><td></td><td></td><td></td></tr>
+      <tr><td class="n">১৮</td><td class="doc"><b>Dr. Debnath Talukder</b><span>নাক-কান-গলা ও হেড-নেক</span></td><td></td><td></td><td></td></tr>
+    </table>
+    </section>
+
+  <section>
+    <h2><span class="no">✎</span>নতুন ডাক্তার যোগ / বাদ, বা অন্য কিছু জানাতে চাইলে</h2>
+    <div class="field"><span class="ln"></span></div>
+    <div class="field"><span class="ln"></span></div>
+  </section>
+
+  <div class="foot"><span>FS Solutions • রকিবুল ইসলাম • +880 1632-932249</span><span>পাতা ১ / ২</span></div>
+</div>
+
+<!-- ============ PAGE 2 ============ -->
+<div class="page">
+  <div class="band"></div>
+
+  <section>
+    <h2><span class="no">২</span>দুইজন ডাক্তারের তথ্য নিশ্চিত করুন</h2>
+    <p class="tip">আপনাদের তালিকায় এই দুইজনের লেখা স্পষ্ট পড়া যায়নি। যা লিখেছি তা সঠিক কিনা দেখুন।</p>
+    <div class="confirm">
+      <div class="q"><b>ডাঃ এস এম মনির হোসেন (রাজা): বর্তমান কর্মস্থল</b><span>আমরা লিখেছি: খুলনা বিশেষায়িত হাসপাতাল, খুলনা</span></div>
+      <div class="field"><span class="cb">সঠিক</span><span class="cb">সংশোধন:</span><span class="ln"></span></div>
+    </div>
+    <div class="confirm">
+      <div class="q"><b>ডাঃ ইফতেখার বিন রাজ্জাক: ডিগ্রি ও পদবি</b><span>আমরা লিখেছি: এমবিবিএস, বিসিএস (স্বাস্থ্য), এম.ফিল; লেকচারার, খুলনা মেডিকেল কলেজ</span></div>
+      <div class="field"><span class="cb">সঠিক</span><span class="cb">সংশোধন:</span><span class="ln"></span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="no">৩</span>হাসপাতালের সময়</h2>
+    <div class="two">
+      <div class="field"><label>শনি–বৃহস্পতি: খোলা</label><span class="ln"></span><label>বন্ধ</label><span class="ln"></span></div>
+      <div class="field"><label>শুক্রবার: খোলা</label><span class="ln"></span><label>বন্ধ</label><span class="ln"></span></div>
+      <div class="field"><label>ইমার্জেন্সি ২৪ ঘণ্টা চালু?</label><span class="cb">হ্যাঁ</span><span class="cb">না</span></div>
+      <div class="field"><label>টেস্ট রিপোর্ট দিতে সময় লাগে</label><span class="ln"></span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="no">৪</span>সেবাসমূহ: যেগুলো আছে তাতে টিক দিন</h2>
+    <div class="grid4">
+      <span class="cb">প্যাথলজি ল্যাব</span><span class="cb">আল্ট্রাসনোগ্রাম</span><span class="cb">এক্স-রে</span><span class="cb">ECG</span>
+      <span class="cb">ইকো</span><span class="cb">ভর্তি ও কেবিন</span><span class="cb">অ্যাম্বুলেন্স</span><span class="cb">২৪/৭ ইমার্জেন্সি</span>
+      <span class="cb">অপারেশন থিয়েটার</span><span class="cb">ফার্মেসি</span><span class="cb">ডেন্টাল</span><span class="cb">ফিজিওথেরাপি</span>
+    </div>
+    <div class="field"><label>অন্যান্য সেবা</label><span class="ln"></span></div>
+    <div class="field"><span class="cb">ওয়েবসাইটে টেস্টের দাম দেখাতে চাই (প্রাইস লিস্টের ছবি WhatsApp করব)</span></div>
+  </section>
+
+  <section>
+    <h2><span class="no">৫</span>অনলাইন সিরিয়াল ও ড্যাশবোর্ড</h2>
+    <div class="field"><label>নতুন সিরিয়ালের বার্তা যে WhatsApp নম্বরে যাবে</label><span class="ln"></span></div>
+    <div class="two">
+      <div class="field"><label>ড্যাশবোর্ড ব্যবহারকারীর নাম</label><span class="ln"></span></div>
+      <div class="field"><label>ইমেইল</label><span class="ln"></span></div>
+    </div>
+    <div class="field"><label>রিসেপশন নম্বর 01337-661299-এ কি WhatsApp চালু আছে?</label><span class="cb">হ্যাঁ</span><span class="cb">না</span></div>
+  </section>
+
+  <section>
+    <h2><span class="no">৬</span>ছবি ও লিংক (WhatsApp-এ পাঠান)</h2>
+    <div class="grid4" style="grid-template-columns: 1fr 1fr">
+      <span class="cb">হাসপাতালের সামনের ছবি (১–২টি)</span><span class="cb">ভিতরের ছবি: রিসেপশন, কেবিন, ল্যাব (২–৩টি)</span>
+      <span class="cb">ডাক্তারদের ছবি (ঐচ্ছিক)</span><span class="cb">Google Map লোকেশন পিন</span>
+    </div>
+    <div class="field"><label>Facebook পেজের লিংক</label><span class="ln"></span></div>
+  </section>
+
+  <section>
+    <h2><span class="no">৭</span>ওয়েবসাইটের নাম (ডোমেইন)</h2>
+    <div class="field"><label>পছন্দের নাম (যেমন: communitycarekhulna.com)</label><span class="ln"></span></div>
+    <p class="tip">ডোমেইনের খরচ আলাদা: বছরে আনুমানিক ৳১,৫০০–২,০০০।</p>
+  </section>
+
+
+  <div class="done">
+    <div class="lbl">ইতোমধ্যে পেয়েছি এবং ওয়েবসাইটে যুক্ত করেছি</div>
+    <ul>
+      <li>হাসপাতালের লোগো (সব ভার্সন)</li>
+      <li>১৮ জন ডাক্তারের তালিকা ও ডিগ্রি</li>
+      <li>রিসেপশন 01337-661299, ইমার্জেন্সি 01901-448954</li>
+      <li>সিরিয়াল 01917-949443, 01711-383154</li>
+      <li>ঠিকানা: ১৯ কেডিএ এভিনিউ, তেঁতুলতলা মোড়</li>
+      <li>অনলাইন বুকিং ফর্ম ও ডেমো ওয়েবসাইট</li>
+    </ul>
+  </div>
+
+  <div class="sign">
+    <div>পূরণকারীর নাম ও পদবি</div>
+    <div>তারিখ</div>
+  </div>
+
+  <div class="foot"><span>FS Solutions • রকিবুল ইসলাম • +880 1632-932249</span><span>পাতা ২ / ২</span></div>
+</div>
+
+</body>
+</html>
