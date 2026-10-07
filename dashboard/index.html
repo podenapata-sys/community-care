@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>সিরিয়াল ড্যাশবোর্ড — কমিউনিটি কেয়ার</title>
+<link rel="icon" type="image/png" href="../assets/logo-mark.png">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d2470; --indigo: #1d3ea6; --cyan: #13b6e2;
+    --ink: #14183a; --ink2: #3c4266; --muted: #6a7193; --line: #e3e7f2;
+    --bg: #f4f6fb; --card: #fff; --soft: #f7f9fd;
+    --s-new: #2d4fc9;      --s-new-bg: #e9eefc;
+    --s-conf: #0f8a5f;     --s-conf-bg: #e3f6ee;
+    --s-arr: #475069;      --s-arr-bg: #eceef4;
+    --s-can: #c0392b;      --s-can-bg: #fdecea;
+    --c-online: #2d4fc9;   --c-manual: #13b6e2;   /* validated pair (dataviz validator, light) */
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; font-size: 15px; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  .hidden { display: none !important; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------- login ---------- */
+  .login { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: linear-gradient(135deg, var(--navy), var(--indigo)); }
+  .login form { background: var(--card); border-radius: 16px; padding: 28px 24px; width: 100%; max-width: 380px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+  .login img { height: 48px; display: block; margin: 0 auto 6px; }
+  .login h1 { text-align: center; font-size: 18px; color: var(--navy); margin-bottom: 18px; }
+  .login label { display: block; font-size: 14px; font-weight: 600; margin: 10px 0 4px; }
+  .login input { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; }
+  .login .err { color: var(--s-can); font-size: 14px; margin-top: 10px; min-height: 20px; }
+  .btn { text-decoration: none; border: 0; border-radius: 10px; padding: 10px 16px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+  .btn-primary { background: var(--navy); color: #fff; }
+  .btn-cyan { background: var(--cyan); color: #04263a; }
+  .btn-ghost { background: var(--card); border: 1px solid var(--line); color: var(--navy); }
+  .btn-wa { background: #25d366; color: #fff; }
+  .btn-sm { padding: 6px 10px; font-size: 13px; border-radius: 8px; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .login .btn { width: 100%; margin-top: 16px; padding: 12px; }
+  .login .demo-note { text-align: center; font-size: 13px; color: var(--muted); margin-top: 12px; }
+
+  /* ---------- shell ---------- */
+  header { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
+  .bar { max-width: 1240px; margin: 0 auto; padding: 0 16px; height: 60px; display: flex; align-items: center; gap: 14px; }
+  .bar img { height: 36px; }
+  .tabs { display: flex; gap: 4px; margin-left: 8px; }
+  .tab { background: none; border: 0; padding: 8px 14px; border-radius: 8px; font-weight: 600; color: var(--muted); }
+  .tab.on { background: var(--bg); color: var(--navy); }
+  .bar .sp { flex: 1; }
+  .badge-demo { background: #fff1d6; color: #8a5300; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .live { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+  .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--s-conf); box-shadow: 0 0 0 3px #d4f2e5; }
+  .live.off i { background: var(--muted); box-shadow: none; }
+  main { max-width: 1240px; margin: 0 auto; padding: 18px 16px 60px; }
+
+  /* ---------- toolbar ---------- */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .toolbar input, .toolbar select { border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 8px 10px; min-height: 40px; }
+  .datebox { display: flex; align-items: center; gap: 4px; }
+  .datebox button { width: 36px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); font-size: 18px; color: var(--navy); }
+  .toolbar .search { flex: 1 1 200px; min-width: 160px; }
+  #fDoctor { flex: 1 1 220px; min-width: 0; max-width: 100%; }
+  #aDoctor { min-width: 0; max-width: 100%; }
+  .toolbar .right { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: 14px; display: inline-flex; gap: 8px; align-items: center; color: var(--ink2); }
+  .chip b { font-weight: 700; color: var(--ink); }
+  .chip.on { border-color: var(--navy); box-shadow: inset 0 0 0 1px var(--navy); color: var(--navy); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+
+  /* ---------- list ---------- */
+  .group { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 14px; overflow: hidden; }
+  .group h3 { font-size: 15px; color: var(--navy); padding: 10px 14px; background: var(--soft); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 10px; }
+  .group h3 span { color: var(--muted); font-weight: 500; font-size: 13px; }
+  .row { display: grid; grid-template-columns: 54px 1.4fr 1fr 110px auto; gap: 12px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .row:last-child { border-bottom: 0; }
+  .row.is-new { background: #fbfcff; }
+  .row.flash { animation: flash 2.4s ease-out; }
+  @keyframes flash { from { background: #fff4c7; } to { background: #fbfcff; } }
+  .serial { width: 42px; height: 42px; border-radius: 10px; background: var(--bg); color: var(--navy); font-weight: 700; font-size: 18px; display: grid; place-items: center; }
+  .who b { display: block; }
+  .who small, .meta small { color: var(--muted); font-size: 13px; }
+  .who a { color: var(--indigo); text-decoration: none; font-size: 14px; }
+  .meta { font-size: 14px; color: var(--ink2); }
+  .src { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); margin-left: 4px; }
+  .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+  .st-new { background: var(--s-new-bg); color: var(--s-new); }
+  .st-confirmed { background: var(--s-conf-bg); color: var(--s-conf); }
+  .st-arrived { background: var(--s-arr-bg); color: var(--s-arr); }
+  .st-cancelled { background: var(--s-can-bg); color: var(--s-can); }
+  .acts { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+  .empty { text-align: center; padding: 50px 16px; color: var(--muted); background: var(--card); border: 1px dashed var(--line); border-radius: var(--radius); }
+
+  @media (max-width: 820px) {
+    .row { grid-template-columns: 46px 1fr auto; grid-template-areas: "s w st" "s m m" "a a a"; row-gap: 6px; }
+    .row .serial { grid-area: s; align-self: start; }
+    .row .who { grid-area: w; } .row .meta { grid-area: m; } .row .stcell { grid-area: st; justify-self: end; align-self: start; }
+    .row .acts { grid-area: a; justify-content: flex-start; }
+    .tabs { margin-left: 0; } .bar img { height: 30px; } .live span { display: none; }
+    .toolbar .right { margin-left: 0; width: 100%; } .toolbar .right .btn { flex: 1; }
+  }
+  @media (max-width: 480px) { .bar { gap: 8px; } .tab { padding: 8px 10px; } .badge-demo { display: none; } }
+
+  /* ---------- reports ---------- */
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+  .tile .lbl { font-size: 13px; color: var(--muted); }
+  .tile .val { font-size: 28px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .tile .sub { font-size: 12.5px; color: var(--muted); }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+  .panel h2 { font-size: 15px; color: var(--ink); }
+  .panel .cap { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .panels2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; }
+  .chart { position: relative; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart text { font-family: inherit; fill: var(--muted); font-size: 11px; }
+  .chart .lab { fill: var(--ink2); font-size: 12px; }
+  .chart .val { fill: var(--ink); font-size: 12px; font-weight: 600; }
+  .tip { position: absolute; pointer-events: none; background: var(--card); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(20,24,58,.12); border-radius: 8px; padding: 6px 10px; font-size: 13px; white-space: nowrap; transform: translate(-50%, -110%); z-index: 5; }
+  .tip b { display: block; font-size: 15px; }
+  .split { display: flex; height: 22px; border-radius: 6px; overflow: hidden; gap: 2px; background: var(--card); margin: 8px 0 10px; }
+  .split div { height: 100%; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; color: var(--ink2); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  details.tbl { margin-top: 10px; font-size: 13px; }
+  details.tbl summary { cursor: pointer; color: var(--indigo); }
+  details.tbl table { border-collapse: collapse; margin-top: 8px; width: 100%; }
+  details.tbl td, details.tbl th { border-bottom: 1px solid var(--line); padding: 4px 8px; text-align: left; }
+  @media (max-width: 900px) { .tiles { grid-template-columns: 1fr 1fr; } .panels2 { grid-template-columns: 1fr; } }
+
+  /* ---------- modal & toast ---------- */
+  .modal { position: fixed; inset: 0; background: rgba(13,36,112,.45); display: grid; place-items: center; padding: 16px; z-index: 50; }
+  .modal form { background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 480px; max-height: 92vh; overflow: auto; }
+  .modal h2 { font-size: 18px; color: var(--navy); margin-bottom: 10px; }
+  .modal label { display: block; font-size: 14px; font-weight: 600; margin: 10px 0 4px; }
+  .modal input, .modal select, .modal textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+  .modal .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal .foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .modal .err { color: var(--s-can); font-size: 14px; margin-top: 8px; }
+  .toasts { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 60; max-width: calc(100vw - 32px); }
+  .toast { background: var(--navy); color: #fff; border-radius: 12px; padding: 12px 16px; box-shadow: 0 12px 30px rgba(0,0,0,.25); min-width: 260px; animation: tin .3s ease-out; }
+  .toast b { color: var(--cyan); display: block; font-size: 13px; }
+  @keyframes tin { from { transform: translateY(20px); opacity: 0; } }
+
+  /* ---------- print ---------- */
+  #printArea { display: none; }
+  @media print {
+    body { background: #fff; font-size: 12px; }
+    .app, .login, .toasts, .modal { display: none !important; }
+    #printArea { display: block; padding: 10mm; }
+    #printArea h1 { font-size: 16px; color: #000; } #printArea h2 { font-size: 14px; margin: 14px 0 4px; }
+    #printArea table { width: 100%; border-collapse: collapse; }
+    #printArea td, #printArea th { border: 1px solid #999; padding: 4px 6px; text-align: left; }
+    #printArea section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div class="login" id="loginView">
+  <form id="loginForm">
+    <img src="../assets/logo.png" alt="কমিউনিটি কেয়ার">
+    <h1>সিরিয়াল ড্যাশবোর্ড</h1>
+    <div id="liveLogin">
+      <label for="lEmail">ইমেইল</label>
+      <input id="lEmail" type="email" autocomplete="username" required>
+      <label for="lPass">পাসওয়ার্ড</label>
+      <input id="lPass" type="password" autocomplete="current-password" required>
+      <button class="btn btn-primary" type="submit">লগইন</button>
+    </div>
+    <div id="demoLogin" class="hidden">
+      <button class="btn btn-primary" type="button" id="demoBtn">ডেমো দেখুন</button>
+      <p class="demo-note">ডেটাবেস এখনো যুক্ত হয়নি, তাই নমুনা ডেটা দেখানো হবে।</p>
+    </div>
+    <div class="err" id="loginErr"></div>
+  </form>
+</div>
+
+<!-- ================= APP ================= -->
+<div class="app hidden" id="appView">
+  <header>
+    <div class="bar">
+      <img src="../assets/logo.png" alt="কমিউনিটি কেয়ার">
+      <nav class="tabs">
+        <button class="tab on" data-tab="serials">সিরিয়াল</button>
+        <button class="tab" data-tab="reports">রিপোর্ট</button>
+      </nav>
+      <div class="sp"></div>
+      <span class="badge-demo hidden" id="demoBadge">ডেমো ডেটা</span>
+      <span class="live off" id="liveDot"><i></i><span>লাইভ</span></span>
+      <button class="btn btn-ghost btn-sm" id="soundBtn" title="শব্দ চালু/বন্ধ">🔔</button>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn">লগআউট</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ---------- SERIALS ---------- -->
+    <section id="tab-serials">
+      <div class="toolbar">
+        <div class="datebox">
+          <button type="button" id="prevDay" aria-label="আগের দিন">‹</button>
+          <input type="date" id="fDate" aria-label="তারিখ">
+          <button type="button" id="nextDay" aria-label="পরের দিন">›</button>
+        </div>
+        <select id="fDoctor" aria-label="ডাক্তার"></select>
+        <input type="search" class="search" id="fSearch" placeholder="নাম বা ফোন নম্বর খুঁজুন">
+        <div class="right">
+          <button class="btn btn-cyan" id="addBtn">+ নতুন সিরিয়াল</button>
+          <button class="btn btn-ghost" id="printBtn">🖨 প্রিন্ট</button>
+          <button class="btn btn-ghost" id="csvBtn">⬇ Excel</button>
+          <button class="btn btn-ghost hidden" id="simBtn">🧪 টেস্ট সিরিয়াল</button>
+        </div>
+      </div>
+      <div class="chips" id="statusChips"></div>
+      <div id="list"></div>
+    </section>
+
+    <!-- ---------- REPORTS ---------- -->
+    <section id="tab-reports" class="hidden">
+      <div class="tiles" id="tiles"></div>
+      <div class="panel">
+        <h2>দৈনিক সিরিয়াল</h2>
+        <p class="cap">গত ৩০ দিন (বাতিল বাদে)</p>
+        <div class="chart" id="dailyChart"></div>
+        <details class="tbl"><summary>টেবিল হিসেবে দেখুন</summary><div id="dailyTable"></div></details>
+      </div>
+      <div class="panels2">
+        <div class="panel">
+          <h2>ডাক্তার অনুযায়ী সিরিয়াল</h2>
+          <p class="cap">গত ৩০ দিন (বাতিল বাদে)</p>
+          <div class="chart" id="docChart"></div>
+        </div>
+        <div class="panel">
+          <h2>সিরিয়াল কোথা থেকে এসেছে</h2>
+          <p class="cap">গত ৩০ দিন: অনলাইন বনাম রিসেপশন থেকে যোগ করা</p>
+          <div id="srcSplit"></div>
+          <h2 style="margin-top:18px">স্ট্যাটাস</h2>
+          <p class="cap">গত ৩০ দিনের সব সিরিয়াল</p>
+          <div id="statusBreak"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ================= MANUAL ENTRY ================= -->
+<div class="modal hidden" id="addModal">
+  <form id="addForm">
+    <h2>নতুন সিরিয়াল যোগ করুন</h2>
+    <label for="aName">রোগীর নাম *</label>
+    <input id="aName" required minlength="2" maxlength="80">
+    <div class="two">
+      <div><label for="aPhone">মোবাইল *</label><input id="aPhone" type="tel" inputmode="tel" pattern="01[3-9][0-9]{8}" placeholder="01XXXXXXXXX" required></div>
+      <div><label for="aAge">বয়স</label><input id="aAge" type="number" min="0" max="120"></div>
+    </div>
+    <div class="two">
+      <div><label for="aDate">তারিখ *</label><input id="aDate" type="date" required></div>
+      <div><label for="aDoctor">ডাক্তার / সেবা *</label><select id="aDoctor" required></select></div>
+    </div>
+    <label for="aNote">নোট</label>
+    <textarea id="aNote" rows="2" maxlength="500"></textarea>
+    <div class="err" id="addErr"></div>
+    <div class="foot">
+      <button type="button" class="btn btn-ghost" id="addCancel">বাতিল</button>
+      <button type="submit" class="btn btn-primary">সেভ করুন</button>
+    </div>
+  </form>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div id="printArea"></div>
+
+<script src="../assets/clinic-data.js"></script>
+<script src="../assets/config.js"></script>
+<script>
+"use strict";
+const CLINIC = window.CLINIC;
+const CFG = window.APP_CONFIG || {};
+const LIVE = !!(CFG.supabaseUrl && CFG.supabaseAnonKey);
+
+/* ================================================================ utils */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const bn = n => Number(n).toLocaleString("bn-BD");
+const pct = (a, b) => b ? Math.round(a * 100 / b) : 0;
+const fmtPhone = p => p && p.length === 11 ? p.slice(0, 5) + "-" + p.slice(5) : p;
+const dhakaToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" }).format(new Date());
+const addDays = (iso, n) => { const d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+const dateBn = iso => new Date(iso + "T00:00:00Z").toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+const dateShort = iso => new Date(iso + "T00:00:00Z").toLocaleDateString("bn-BD", { day: "numeric", month: "short", timeZone: "UTC" });
+const timeBn = ts => new Date(ts).toLocaleTimeString("bn-BD", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Dhaka" });
+
+const STATUS = {
+  new:       { bn: "নতুন",     icon: "●" },
+  confirmed: { bn: "কনফার্ম",  icon: "✓" },
+  arrived:   { bn: "এসেছেন",   icon: "★" },
+  cancelled: { bn: "বাতিল",    icon: "✕" }
+};
+const STATUS_COLOR = { new: "var(--s-new)", confirmed: "var(--s-conf)", arrived: "var(--s-arr)", cancelled: "var(--s-can)" };
+const deptOf = name => (CLINIC.doctors.find(d => d.name === name) || {}).dept || null;
+const docLabel = name => { const d = CLINIC.doctors.find(x => x.name === name); return d ? d.sbn : ""; };
+
+/* ================================================================ data stores */
+// Both stores expose: init(), signIn(), signOut(), listDay(date), listRange(from,to),
+// add(row), update(id, patch), onInsert(cb)
+const DemoStore = (() => {
+  const KEY = "cc-demo-bookings-v1";
+  let rows = [], listeners = [];
+  const NAMES = ["মোঃ রফিকুল ইসলাম", "সুমাইয়া আক্তার", "আব্দুল করিম", "নাসরিন সুলতানা", "মোঃ জাহিদ হাসান", "শিরিন আক্তার",
+    "তানভীর আহমেদ", "রোকসানা বেগম", "মোঃ সাইফুল ইসলাম", "ফারজানা ইয়াসমিন", "আমিনুল হক", "মাহমুদা খাতুন",
+    "রাকিব হাসান", "সালমা বেগম", "মোঃ শাহিন আলম", "তাসলিমা নাসরিন", "কামরুল হাসান", "জান্নাতুল ফেরদৌস",
+    "মোঃ আলমগীর হোসেন", "রুমানা আফরোজ", "বিপ্লব দাস", "সুমি রানী সাহা", "মোঃ হাবিবুর রহমান", "নুসরাত জাহান"];
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const phone = () => "01" + pick(["3", "7", "8", "9", "5", "6"]) + String(Math.floor(rnd() * 1e8)).padStart(8, "0");
+  function seedData() {
+    const today = dhakaToday(), out = [];
+    const popular = CLINIC.doctors.map((d, i) => ({ d, w: 1 + ((i * 7) % 5) }));
+    for (let back = 30; back >= -2; back--) {
+      const date = addDays(today, -back);
+      const dow = new Date(date + "T00:00:00Z").getUTCDay();
+      let n = Math.round((dow === 5 ? 6 : 13) + rnd() * 8 + (30 - back) * 0.15);
+      if (back < 0) n = Math.round(n * 0.4);
+      const serials = {};
+      for (let k = 0; k < n; k++) {
+        let r = rnd() * popular.reduce((s, p) => s + p.w, 0), doc = popular[0].d;
+        for (const p of popular) { if ((r -= p.w) <= 0) { doc = p.d; break; } }
+        serials[doc.name] = (serials[doc.name] || 0) + 1;
+        const past = back > 0, isToday = back === 0, x = rnd();
+        const status = past ? (x < .72 ? "arrived" : x < .86 ? "confirmed" : "cancelled")
+                     : isToday ? (x < .35 ? "new" : x < .7 ? "confirmed" : x < .92 ? "arrived" : "cancelled")
+                     : (x < .6 ? "new" : x < .95 ? "confirmed" : "cancelled");
+        const created = new Date(new Date(date + "T03:00:00Z").getTime() - rnd() * 2 * 864e5).toISOString();
+        out.push({ id: "d" + date + "-" + k, serial_no: serials[doc.name], booking_date: date, doctor: doc.name, dept: doc.dept,
+          patient_name: pick(NAMES), phone: phone(), age: 5 + Math.floor(rnd() * 70), note: null, status,
+          source: rnd() < .64 ? "online" : "manual", created_at: created, updated_at: created });
+      }
+    }
+    return out;
+  }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(rows)); } catch (e) {} };
+  const nextSerial = (date, doctor) => 1 + Math.max(0, ...rows.filter(r => r.booking_date === date && r.doctor === doctor).map(r => r.serial_no));
+  return {
+    demo: true,
+    async init() {
+      try { rows = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { rows = null; }
+      if (!Array.isArray(rows) || !rows.length) { rows = seedData(); save(); }
+    },
+    async signIn() { return true; },
+    async session() { return false; },
+    async signOut() {},
+    async listDay(date) { return rows.filter(r => r.booking_date === date); },
+    async listRange(from, to) { return rows.filter(r => r.booking_date >= from && r.booking_date <= to); },
+    async add(r) {
+      const now = new Date().toISOString();
+      const row = { id: "m" + Date.now() + Math.random().toString(36).slice(2, 6), serial_no: nextSerial(r.booking_date, r.doctor),
+        status: "new", created_at: now, updated_at: now, ...r };
+      rows.push(row); save(); return row;
+    },
+    async update(id, patch) { const r = rows.find(x => x.id === id); Object.assign(r, patch, { updated_at: new Date().toISOString() }); save(); return r; },
+    onInsert(cb) { listeners.push(cb); return true; },
+    async simulate() {
+      const doc = pick(CLINIC.doctors);
+      const row = await this.add({ booking_date: dhakaToday(), doctor: doc.name, dept: doc.dept, patient_name: pick(NAMES),
+        phone: phone(), age: 18 + Math.floor(rnd() * 50), note: null, source: "online" });
+      listeners.forEach(f => f(row));
+    }
+  };
+})();
+
+const SupaStore = (() => {
+  let sb = null, channel = null;
+  const COLS = "id,serial_no,booking_date,doctor,dept,patient_name,phone,age,note,status,source,created_at,updated_at";
+  const load = () => new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    s.onload = res; s.onerror = () => rej(new Error("supabase-js load failed"));
+    document.head.appendChild(s);
+  });
+  const must = ({ data, error }) => { if (error) throw error; return data; };
+  return {
+    demo: false,
+    async init() { await load(); sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey); },
+    async session() { const { data } = await sb.auth.getSession(); return !!data.session; },
+    async signIn(email, password) { const { error } = await sb.auth.signInWithPassword({ email, password }); if (error) throw error; return true; },
+    async signOut() { if (channel) sb.removeChannel(channel); await sb.auth.signOut(); },
+    async listDay(date) { return must(await sb.from("bookings").select(COLS).eq("booking_date", date).order("serial_no")); },
+    async listRange(from, to) {
+      return must(await sb.from("bookings").select("booking_date,doctor,status,source")
+        .gte("booking_date", from).lte("booking_date", to).limit(10000));
+    },
+    async add(r) { return must(await sb.from("bookings").insert({ ...r, source: "manual" }).select(COLS).single()); },
+    async update(id, patch) { return must(await sb.from("bookings").update(patch).eq("id", id).select(COLS).single()); },
+    onInsert(cb) {
+      channel = sb.channel("bookings-inserts")
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "bookings" }, p => cb(p.new))
+        .subscribe(st => setLive(st === "SUBSCRIBED"));
+      return true;
+    }
+  };
+})();
+
+const store = LIVE ? SupaStore : DemoStore;
+
+/* ================================================================ state */
+const state = { date: dhakaToday(), doctor: "", search: "", status: "", rows: [], unseen: 0, sound: true, tab: "serials", flash: new Set() };
+try { state.sound = localStorage.getItem("cc-sound") !== "off"; } catch (e) {}
+
+/* ================================================================ alerts */
+let audioCtx = null;
+function chime() {
+  if (!state.sound) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime;
+    [[880, 0], [1320, .16]].forEach(([f, d]) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.25, t + d + .02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d + .45);
+      o.connect(g).connect(audioCtx.destination); o.start(t + d); o.stop(t + d + .5);
+    });
+  } catch (e) {}
+}
+function toast(title, body) {
+  const el = document.createElement("div");
+  el.className = "toast";
+  const b = document.createElement("b"); b.textContent = title;
+  const s = document.createElement("div"); s.textContent = body;
+  el.append(b, s); $("#toasts").append(el);
+  setTimeout(() => el.remove(), 7000);
+}
+function updateTitle() { document.title = (state.unseen ? `(${bn(state.unseen)}) নতুন — ` : "") + "সিরিয়াল ড্যাশবোর্ড — কমিউনিটি কেয়ার"; }
+function setLive(on) { $("#liveDot").classList.toggle("off", !on); }
+
+function onNewBooking(row) {
+  if (state.rows.some(r => r.id === row.id)) return;
+  if (row.source === "manual") {   // added at reception: show it, but no alarm
+    if (row.booking_date === state.date) { state.rows.push(row); renderSerials(); }
+    return;
+  }
+  chime();
+  const msg = `${row.patient_name} → ${row.doctor} · সিরিয়াল ${bn(row.serial_no)} (${dateShort(row.booking_date)})`;
+  toast("🔔 নতুন সিরিয়াল এসেছে", msg);
+  if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+    try { new Notification("নতুন সিরিয়াল", { body: msg, icon: "../assets/logo-mark.png" }); } catch (e) {}
+  }
+  if (document.hidden || state.tab !== "serials") { state.unseen++; updateTitle(); }
+  if (row.booking_date === state.date && !state.rows.some(r => r.id === row.id)) {
+    state.rows.push(row); state.flash.add(row.id); renderSerials();
+  }
+  if (state.tab === "reports") renderReports();
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && state.tab === "serials") { state.unseen = 0; updateTitle(); } });
+
+/* ================================================================ serials tab */
+function doctorOptions(sel, withAll) {
+  const docs = CLINIC.doctors.map(d => `<option value="${esc(d.name)}">${esc(d.name)} — ${esc(d.sbn)}</option>`).join("");
+  const svcs = CLINIC.services.map(s => `<option value="${esc(s.bn)}">${esc(s.bn)}</option>`).join("");
+  sel.innerHTML = (withAll ? `<option value="">সব ডাক্তার ও সেবা</option>` : `<option value="">বেছে নিন</option>`) +
+    `<optgroup label="ডাক্তার">${docs}</optgroup><optgroup label="সেবা">${svcs}</optgroup>`;
+}
+
+function filtered() {
+  const q = state.search.trim().toLowerCase();
+  return state.rows.filter(r =>
+    (!state.doctor || r.doctor === state.doctor) &&
+    (!q || r.patient_name.toLowerCase().includes(q) || r.phone.includes(q.replace(/\D/g, "") || "\u0000")));
+}
+
+function waLink(r) {
+  const text = `আসসালামু আলাইকুম ${r.patient_name},\n${CLINIC.name.bn} থেকে বলছি।\n` +
+    `${dateBn(r.booking_date)} তারিখে ${r.doctor}-এর কাছে আপনার সিরিয়াল নম্বর *${bn(r.serial_no)}* কনফার্ম করা হয়েছে।\n` +
+    `ঠিকানা: ${CLINIC.address.bn}\nপ্রয়োজনে কল করুন: ${fmtPhone(CLINIC.reception)}\nধন্যবাদ।`;
+  return `https://wa.me/88${r.phone}?text=${encodeURIComponent(text)}`;
+}
+
+function renderSerials() {
+  const base = filtered();
+  const counts = { "": base.length };
+  Object.keys(STATUS).forEach(k => counts[k] = base.filter(r => r.status === k).length);
+  $("#statusChips").innerHTML = [["", "সব"], ...Object.entries(STATUS).map(([k, v]) => [k, v.bn])].map(([k, label]) =>
+    `<button class="chip${state.status === k ? " on" : ""}" data-status="${k}">${k ? `<span class="dot" style="background:${STATUS_COLOR[k]}"></span>` : ""}${label} <b class="num">${bn(counts[k])}</b></button>`).join("");
+
+  const rows = base.filter(r => !state.status || r.status === state.status)
+    .sort((a, b) => a.doctor.localeCompare(b.doctor) || a.serial_no - b.serial_no);
+  if (!rows.length) {
+    $("#list").innerHTML = `<div class="empty">${dateBn(state.date)} তারিখে ${state.rows.length ? "এই ফিল্টারে" : ""} কোনো সিরিয়াল নেই।</div>`;
+    return;
+  }
+  const groups = {};
+  rows.forEach(r => (groups[r.doctor] = groups[r.doctor] || []).push(r));
+  $("#list").innerHTML = Object.entries(groups).map(([doc, list]) => `
+    <div class="group">
+      <h3>${esc(doc)} <span>${esc(docLabel(doc))} · ${bn(list.length)} জন</span></h3>
+      ${list.map(r => `
+      <div class="row${r.status === "new" ? " is-new" : ""}${state.flash.has(r.id) ? " flash" : ""}" data-id="${esc(r.id)}">
+        <div class="serial num">${bn(r.serial_no)}</div>
+        <div class="who"><b>${esc(r.patient_name)}</b><a href="tel:+88${esc(r.phone)}">📞 ${esc(fmtPhone(r.phone))}</a>${r.age != null ? ` <small>· ${bn(r.age)} বছর</small>` : ""}</div>
+        <div class="meta"><small>এসেছে ${timeBn(r.created_at)}</small><span class="src">${r.source === "manual" ? "রিসেপশন" : "অনলাইন"}</span>${r.note ? `<br><small>📝 ${esc(r.note)}</small>` : ""}</div>
+        <div class="stcell"><span class="status st-${r.status}">${STATUS[r.status].icon} ${STATUS[r.status].bn}</span></div>
+        <div class="acts">
+          ${r.status !== "cancelled" ? `<a class="btn btn-wa btn-sm" href="${waLink(r)}" target="_blank" rel="noopener" data-act="wa">WhatsApp কনফার্ম</a>` : ""}
+          ${r.status === "new" ? `<button class="btn btn-ghost btn-sm" data-act="confirmed">✓ কনফার্ম</button>` : ""}
+          ${r.status === "new" || r.status === "confirmed" ? `<button class="btn btn-ghost btn-sm" data-act="arrived">★ এসেছেন</button>` : ""}
+          ${r.status !== "cancelled" ? `<button class="btn btn-ghost btn-sm" data-act="cancelled">✕ বাতিল</button>` : `<button class="btn btn-ghost btn-sm" data-act="new">↺ ফিরিয়ে আনুন</button>`}
+        </div>
+      </div>`).join("")}
+    </div>`).join("");
+  state.flash.clear();
+}
+
+async function loadDay() {
+  $("#fDate").value = state.date;
+  try { state.rows = await store.listDay(state.date); }
+  catch (e) { state.rows = []; toast("সমস্যা", "ডেটা লোড করা যায়নি: " + e.message); }
+  renderSerials();
+}
+
+async function setStatus(id, status) {
+  const r = state.rows.find(x => x.id === id);
+  if (!r || r.status === status) return;
+  const old = r.status; r.status = status; renderSerials();
+  try { Object.assign(r, await store.update(id, { status })); }
+  catch (e) { r.status = old; renderSerials(); toast("সমস্যা", "স্ট্যাটাস বদলানো যায়নি: " + e.message); }
+}
+
+$("#list").addEventListener("click", e => {
+  const btn = e.target.closest("[data-act]"); if (!btn) return;
+  const id = btn.closest(".row").dataset.id, act = btn.dataset.act;
+  if (act === "wa") { const r = state.rows.find(x => x.id === id); if (r && r.status === "new") setStatus(id, "confirmed"); return; }
+  setStatus(id, act);
+});
+$("#statusChips").addEventListener("click", e => { const c = e.target.closest(".chip"); if (c) { state.status = c.dataset.status; renderSerials(); } });
+$("#fDate").addEventListener("change", e => { if (e.target.value) { state.date = e.target.value; loadDay(); } });
+$("#prevDay").addEventListener("click", () => { state.date = addDays(state.date, -1); loadDay(); });
+$("#nextDay").addEventListener("click", () => { state.date = addDays(state.date, 1); loadDay(); });
+$("#fDoctor").addEventListener("change", e => { state.doctor = e.target.value; renderSerials(); });
+$("#fSearch").addEventListener("input", e => { state.search = e.target.value; renderSerials(); });
+
+/* ---- manual entry ---- */
+$("#addBtn").addEventListener("click", () => {
+  $("#addForm").reset(); $("#addErr").textContent = "";
+  $("#aDate").value = state.date; if (state.doctor) $("#aDoctor").value = state.doctor;
+  $("#addModal").classList.remove("hidden"); $("#aName").focus();
+});
+$("#addCancel").addEventListener("click", () => $("#addModal").classList.add("hidden"));
+$("#addModal").addEventListener("click", e => { if (e.target.id === "addModal") $("#addModal").classList.add("hidden"); });
+$("#addForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target; if (!f.checkValidity()) { f.reportValidity(); return; }
+  const doctor = $("#aDoctor").value;
+  const row = { booking_date: $("#aDate").value, doctor, dept: deptOf(doctor), patient_name: $("#aName").value.trim(),
+    phone: $("#aPhone").value.trim(), age: $("#aAge").value ? +$("#aAge").value : null, note: $("#aNote").value.trim() || null, source: "manual" };
+  const btn = f.querySelector("[type=submit]"); btn.disabled = true;
+  try {
+    const saved = await store.add(row);
+    $("#addModal").classList.add("hidden");
+    toast("✓ সিরিয়াল যোগ হয়েছে", `${saved.patient_name} → ${saved.doctor} · সিরিয়াল ${bn(saved.serial_no)}`);
+    if (saved.booking_date === state.date) { if (!state.rows.some(r => r.id === saved.id)) state.rows.push(saved); state.flash.add(saved.id); renderSerials(); }
+    else { state.date = saved.booking_date; loadDay(); }
+  } catch (err) { $("#addErr").textContent = "সেভ করা যায়নি: " + err.message; }
+  finally { btn.disabled = false; }
+});
+
+/* ---- print & CSV ---- */
+$("#printBtn").addEventListener("click", () => {
+  const rows = filtered().filter(r => r.status !== "cancelled").sort((a, b) => a.doctor.localeCompare(b.doctor) || a.serial_no - b.serial_no);
+  const groups = {}; rows.forEach(r => (groups[r.doctor] = groups[r.doctor] || []).push(r));
+  $("#printArea").innerHTML = `<h1>${esc(CLINIC.name.bn)} — সিরিয়াল তালিকা, ${dateBn(state.date)}</h1>` +
+    (rows.length ? Object.entries(groups).map(([doc, list]) => `<section><h2>${esc(doc)} (${bn(list.length)} জন)</h2>
+      <table><tr><th>সিরিয়াল</th><th>রোগীর নাম</th><th>ফোন</th><th>বয়স</th><th>স্ট্যাটাস</th><th>নোট</th></tr>
+      ${list.map(r => `<tr><td>${bn(r.serial_no)}</td><td>${esc(r.patient_name)}</td><td>${esc(fmtPhone(r.phone))}</td><td>${r.age != null ? bn(r.age) : ""}</td><td>${STATUS[r.status].bn}</td><td>${esc(r.note || "")}</td></tr>`).join("")}
+      </table></section>`).join("") : "<p>কোনো সিরিয়াল নেই।</p>");
+  window.print();
+});
+
+$("#csvBtn").addEventListener("click", () => {
+  const rows = filtered().filter(r => !state.status || r.status === state.status).sort((a, b) => a.doctor.localeCompare(b.doctor) || a.serial_no - b.serial_no);
+  const cell = v => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const lines = [["তারিখ", "ডাক্তার/সেবা", "সিরিয়াল", "রোগীর নাম", "ফোন", "বয়স", "স্ট্যাটাস", "উৎস", "নোট", "বুকিংয়ের সময়"].join(",")]
+    .concat(rows.map(r => [r.booking_date, r.doctor, r.serial_no, r.patient_name, r.phone, r.age ?? "", STATUS[r.status].bn,
+      r.source === "manual" ? "রিসেপশন" : "অনলাইন", r.note || "", new Date(r.created_at).toLocaleString("en-GB", { timeZone: "Asia/Dhaka" })].map(cell).join(",")));
+  const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = `serials-${state.date}.csv`;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+
+/* ================================================================ reports tab */
+const SVGNS = "http://www.w3.org/2000/svg";
+function tipFor(container) {
+  let t = container.querySelector(".tip");
+  if (!t) { t = document.createElement("div"); t.className = "tip hidden"; container.append(t); }
+  return {
+    show(x, y, value, label) { t.textContent = ""; const b = document.createElement("b"); b.textContent = value; t.append(b, document.createTextNode(label)); t.style.left = x + "px"; t.style.top = y + "px"; t.classList.remove("hidden"); },
+    hide() { t.classList.add("hidden"); }
+  };
+}
+const niceMax = v => { if (v <= 5) return 5; const p = Math.pow(10, Math.floor(Math.log10(v))); const m = v / p; return (m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; };
+// Rounded-end bar path: 4px radius on the data end, square at the baseline.
+function barPath(x, y, w, h, horizontal) {
+  const r = Math.min(4, horizontal ? h / 2 : w / 2, horizontal ? w : h);
+  if (h <= 0 || w <= 0) return "";
+  return horizontal
+    ? `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`
+    : `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+}
+
+function dailyChart(el, days) {
+  el.querySelectorAll("svg").forEach(s => s.remove());
+  const W = Math.max(320, el.clientWidth || 600), H = 220, m = { t: 14, r: 8, b: 26, l: 30 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b, max = niceMax(Math.max(1, ...days.map(d => d.n)));
+  const band = iw / days.length, bw = Math.min(24, band - 2);
+  const svg = document.createElementNS(SVGNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "গত ৩০ দিনের দৈনিক সিরিয়াল সংখ্যা");
+  let g = "";
+  const steps = Number.isInteger(max / 4) ? 4 : 5;   // whole-number ticks only
+  for (let i = 0; i <= steps; i++) {
+    const v = max * i / steps, y = m.t + ih - ih * i / steps;
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1"/>`;
+    g += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end">${bn(v)}</text>`;
+  }
+  days.forEach((d, i) => {
+    const h = ih * d.n / max, x = m.l + band * i + (band - bw) / 2, y = m.t + ih - h;
+    const isToday = i === days.length - 1;
+    g += `<path d="${barPath(x, y, bw, h)}" fill="${isToday ? "var(--c-online)" : "#8fa3e6"}"/>`;
+    g += `<rect class="hit" data-i="${i}" x="${m.l + band * i}" y="${m.t}" width="${band}" height="${ih}" fill="transparent"/>`;
+    if (i % 5 === 4 || isToday) g += `<text x="${x + bw / 2}" y="${H - 8}" text-anchor="middle">${dateShort(d.date)}</text>`;
+  });
+  const last = days[days.length - 1];
+  g += `<text class="val" x="${m.l + band * (days.length - 1) + band / 2}" y="${m.t + ih - ih * last.n / max - 6}" text-anchor="middle">${bn(last.n)}</text>`;
+  svg.innerHTML = g; el.prepend(svg);
+  const tip = tipFor(el);
+  svg.addEventListener("pointermove", e => {
+    const h = e.target.closest(".hit"); if (!h) return tip.hide();
+    const d = days[+h.dataset.i], r = svg.getBoundingClientRect(), sx = r.width / W;
+    tip.show((m.l + band * +h.dataset.i + band / 2) * sx, (m.t + ih - ih * d.n / max) * sx - 4, `${bn(d.n)} টি সিরিয়াল`, dateBn(d.date));
+  });
+  svg.addEventListener("pointerleave", () => tip.hide());
+}
+
+function doctorChart(el, items) {
+  el.querySelectorAll("svg").forEach(s => s.remove());
+  const W = Math.max(300, el.clientWidth || 420), row = 26, m = { t: 4, r: 36, l: Math.min(190, W * .45) };
+  const H = m.t + items.length * row + 4, iw = W - m.l - m.r, max = Math.max(1, ...items.map(d => d.n));
+  const svg = document.createElementNS(SVGNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "ডাক্তার অনুযায়ী সিরিয়াল সংখ্যা");
+  const short = s => s.replace(/^(Dr\.|ডাঃ)\s*/, "").replace(/^Md\.\s*/, "");
+  let g = `<line x1="${m.l}" x2="${m.l}" y1="${m.t}" y2="${H - 4}" stroke="var(--line)"/>`;
+  items.forEach((d, i) => {
+    const y = m.t + i * row + 4, bh = Math.min(16, row - 8), w = iw * d.n / max;
+    g += `<text class="lab" x="${m.l - 8}" y="${y + bh / 2 + 4}" text-anchor="end">${esc(short(d.doctor).slice(0, 26))}</text>`;
+    g += `<path d="${barPath(m.l, y, w, bh, true)}" fill="var(--c-online)"/>`;
+    g += `<text class="val" x="${m.l + w + 6}" y="${y + bh / 2 + 4}">${bn(d.n)}</text>`;
+  });
+  svg.innerHTML = g; el.prepend(svg);
+}
+
+async function renderReports() {
+  const to = dhakaToday(), from = addDays(to, -29), weekFrom = addDays(to, -6);
+  let rows;
+  try { rows = await store.listRange(from, addDays(to, 60)); } catch (e) { toast("সমস্যা", "রিপোর্ট লোড করা যায়নি: " + e.message); return; }
+  const inRange = rows.filter(r => r.booking_date >= from && r.booking_date <= to);
+  const active = inRange.filter(r => r.status !== "cancelled");
+  const today = rows.filter(r => r.booking_date === to);
+  const week = rows.filter(r => r.booking_date >= weekFrom && r.booking_date <= to && r.status !== "cancelled");
+  const confirmed = inRange.filter(r => r.status === "confirmed" || r.status === "arrived").length;
+  const cancelled = inRange.filter(r => r.status === "cancelled").length;
+  const upcoming = rows.filter(r => r.booking_date > to && r.status !== "cancelled").length;
+  $("#tiles").innerHTML = [
+    ["আজকের সিরিয়াল", bn(today.filter(r => r.status !== "cancelled").length), `${bn(today.filter(r => r.status === "new").length)} টি এখনো কনফার্ম হয়নি`],
+    ["গত ৭ দিন", bn(week.length), `সামনের দিনগুলোর জন্য বুক: ${bn(upcoming)}`],
+    ["কনফার্ম হার", bn(pct(confirmed, inRange.length)) + "%", "গত ৩০ দিন, কনফার্ম + এসেছেন"],
+    ["বাতিল", bn(cancelled), `গত ৩০ দিন (${bn(pct(cancelled, inRange.length))}%)`]
+  ].map(([l, v, s]) => `<div class="tile"><div class="lbl">${l}</div><div class="val num">${v}</div><div class="sub">${s}</div></div>`).join("");
+
+  const days = Array.from({ length: 30 }, (_, i) => { const date = addDays(from, i); return { date, n: active.filter(r => r.booking_date === date).length }; });
+  dailyChart($("#dailyChart"), days);
+  $("#dailyTable").innerHTML = `<table><tr><th>তারিখ</th><th>সিরিয়াল</th></tr>${days.slice().reverse().map(d => `<tr><td>${dateBn(d.date)}</td><td>${bn(d.n)}</td></tr>`).join("")}</table>`;
+
+  const byDoc = {}; active.forEach(r => byDoc[r.doctor] = (byDoc[r.doctor] || 0) + 1);
+  doctorChart($("#docChart"), Object.entries(byDoc).map(([doctor, n]) => ({ doctor, n })).sort((a, b) => b.n - a.n));
+
+  const on = inRange.filter(r => r.source === "online").length, man = inRange.length - on;
+  $("#srcSplit").innerHTML = inRange.length ? `
+    <div class="split" role="img" aria-label="অনলাইন ${pct(on, inRange.length)}%, রিসেপশন ${pct(man, inRange.length)}%">
+      <div style="width:${pct(on, inRange.length)}%;background:var(--c-online);border-radius:6px 0 0 6px"></div>
+      <div style="flex:1;background:var(--c-manual);border-radius:0 6px 6px 0"></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--c-online)"></i>অনলাইন <b class="num">${bn(on)}</b> (${bn(pct(on, inRange.length))}%)</span>
+      <span><i style="background:var(--c-manual)"></i>রিসেপশন <b class="num">${bn(man)}</b> (${bn(pct(man, inRange.length))}%)</span>
+    </div>` : `<p class="cap">এখনো কোনো ডেটা নেই।</p>`;
+  $("#statusBreak").innerHTML = `<div class="legend" style="flex-direction:column;gap:6px">${Object.entries(STATUS).map(([k, v]) =>
+    `<span><span class="status st-${k}">${v.icon} ${v.bn}</span> <b class="num">${bn(inRange.filter(r => r.status === k).length)}</b></span>`).join("")}</div>`;
+}
+let resizeT; window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (state.tab === "reports") renderReports(); }, 200); });
+
+/* ================================================================ shell */
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  state.tab = t.dataset.tab;
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === t));
+  $("#tab-serials").classList.toggle("hidden", state.tab !== "serials");
+  $("#tab-reports").classList.toggle("hidden", state.tab !== "reports");
+  if (state.tab === "reports") renderReports(); else { state.unseen = 0; updateTitle(); loadDay(); }
+}));
+function paintSound() { $("#soundBtn").textContent = state.sound ? "🔔" : "🔕"; }
+$("#soundBtn").addEventListener("click", () => {
+  state.sound = !state.sound; paintSound();
+  try { localStorage.setItem("cc-sound", state.sound ? "on" : "off"); } catch (e) {}
+  if (state.sound) chime();
+});
+$("#simBtn").addEventListener("click", () => DemoStore.simulate());
+$("#logoutBtn").addEventListener("click", async () => { await store.signOut(); location.reload(); });
+
+async function enterApp() {
+  $("#loginView").classList.add("hidden"); $("#appView").classList.remove("hidden");
+  $("#demoBadge").classList.toggle("hidden", !store.demo); $("#simBtn").classList.toggle("hidden", !store.demo);
+  doctorOptions($("#fDoctor"), true); doctorOptions($("#aDoctor"), false); paintSound();
+  if ("Notification" in window && Notification.permission === "default") { try { Notification.requestPermission(); } catch (e) {} }
+  store.onInsert(onNewBooking);
+  if (store.demo) setLive(true);
+  await loadDay();
+}
+
+$("#loginForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("#loginErr").textContent = "";
+  try { await store.signIn($("#lEmail").value.trim(), $("#lPass").value); await enterApp(); }
+  catch (err) { $("#loginErr").textContent = "লগইন হয়নি: ইমেইল বা পাসওয়ার্ড ভুল।"; }
+});
+$("#demoBtn").addEventListener("click", enterApp);
+
+(async () => {
+  $("#liveLogin").classList.toggle("hidden", !LIVE);
+  $("#demoLogin").classList.toggle("hidden", LIVE);
+  $("#lEmail").required = LIVE; $("#lPass").required = LIVE;
+  try { await store.init(); if (await store.session()) await enterApp(); }
+  catch (e) { $("#loginErr").textContent = "সার্ভারের সাথে সংযোগ হয়নি। ইন্টারনেট চেক করুন।"; }
+})();
+</script>
+</body>
+</html>
