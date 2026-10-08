@@ -128,8 +128,16 @@
   .doc .spec { color: var(--cyan); font-weight: 600; font-size: 14px; }
   .doc .deg { font-size: 12px; color: var(--muted); margin: 2px auto 4px; display: inline-block; }
   .doc { display: flex; flex-direction: column; align-items: center; }
-  .doc .work { font-size: 13px; color: var(--muted); margin: 8px 0 14px; }
+  .doc .work { font-size: 13px; color: var(--muted); margin: 8px 0 6px; }
   .doc .btn { margin-top: auto; }
+  .doc { position: relative; }
+  .doc.hl { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); }
+  .star-badge { position: absolute; top: 12px; right: 12px; background: #fff4d6; color: #8a5300; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; }
+  .doc .tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+  .doc .tag { font-size: 11.5px; font-weight: 600; color: var(--navy); background: var(--cyan-soft); padding: 2px 9px; border-radius: 999px; }
+  .doc .info { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink); margin: 0 0 14px; }
+  #docMore[hidden] { display: none; }
+  .btn-ghost-dark { background: var(--card); color: var(--navy); border: 1px solid var(--navy); }
   .doc .call-link { font-size: 12px; color: var(--indigo); margin-top: 8px; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 24px; }
   .chip {
@@ -237,7 +245,7 @@
         <a href="#" class="btn btn-ghost js-call" data-bn="📞 কল করুন" data-en="📞 Call Us"></a>
       </div>
       <div class="hero-stats">
-        <div class="stat"><b>18+</b><span data-bn="বিশেষজ্ঞ ডাক্তার" data-en="Specialist doctors"></span></div>
+        <div class="stat"><b class="js-doc-count">39+</b><span data-bn="বিশেষজ্ঞ ডাক্তার" data-en="Specialist doctors"></span></div>
         <div class="stat"><b class="ph">XX+</b><span data-bn="ডায়াগনস্টিক টেস্ট" data-en="Diagnostic tests"></span></div>
         <div class="stat"><b>24/7</b><span data-bn="জরুরি সেবা" data-en="Emergency"></span></div>
       </div>
@@ -274,6 +282,7 @@
     </div>
     <div class="chips" id="docFilter"></div>
     <div class="grid g3" id="doctorsGrid"></div>
+    <div style="text-align:center;margin-top:20px"><button type="button" class="btn btn-ghost-dark" id="docMore" hidden></button></div>
   </div>
 </section>
 
@@ -394,26 +403,52 @@ function renderLists() {
     return `<button type="button" class="chip${k === docFilter ? " on" : ""}" data-dept="${k}">${esc(label)} <span>${n}</span></button>`;
   }).join("");
 
-  document.getElementById("doctorsGrid").innerHTML = CONFIG.doctors.map((d, i) => d.dept !== docFilter && docFilter !== "all" ? "" : `
-    <div class="card doc">
+  // Highlighted doctors first, then source order; "all" shows 9 until expanded.
+  const docs = CONFIG.doctors.map((d, i) => ({ d, i }))
+    .filter(x => docFilter === "all" || x.d.dept === docFilter)
+    .sort((x, y) => (y.d.highlight ? 1 : 0) - (x.d.highlight ? 1 : 0) || x.i - y.i);
+  const limit = docFilter === "all" && !showAllDocs ? 9 : docs.length;
+  const bnNum = n => lang === "bn" ? Number(n).toLocaleString("bn-BD") : String(n);
+  const fee = f => lang === "bn" ? f.replace(/\d+/g, n => bnNum(+n)) : f;
+  const time = t => lang === "bn" && t === "3pm–9pm" ? "বিকাল ৩টা – রাত ৯টা" : t;
+  const statusLabel = { regular: ["নিয়মিত", "Regular"], visiting: ["ভিজিটিং কনসালট্যান্ট", "Visiting Consultant"], both: ["নিয়মিত / ভিজিটিং", "Regular / Visiting"] };
+  document.getElementById("doctorsGrid").innerHTML = docs.slice(0, limit).map(({ d, i }) => `
+    <div class="card doc${d.highlight ? " hl" : ""}">
+      ${d.highlight ? `<span class="star-badge">★ ${lang === "bn" ? "বিশিষ্ট চিকিৎসক" : "Featured"}</span>` : ""}
       <div class="avatar">${esc(initials(d.name))}</div>
-      <h3>${esc(d.name)}</h3>
-      <div class="deg">${esc(d.deg)}</div>
+      <h3${d.verify === "name" ? ' class="ph"' : ""}>${esc(d.name)}</h3>
+      <div class="deg${d.verify === "details" ? " ph" : ""}">${esc(d.deg)}</div>
       <div class="spec">${esc(lang === "bn" ? d.sbn : d.sen)}</div>
-      <div class="work${d.unconfirmed ? " ph" : ""}">🏥 ${esc(d.work)}</div>
+      <div class="tags">
+        ${d.status ? `<span class="tag">${statusLabel[d.status][lang === "bn" ? 0 : 1]}</span>` : ""}
+        ${d.expert ? `<span class="tag">${lang === "bn" ? "অভিজ্ঞ" : "Expert"}</span>` : ""}
+      </div>
+      <div class="work">🏥 ${esc(d.work)}</div>
+      <div class="info">
+        ${d.time ? `<span>🕒 ${esc(time(d.time))}</span>` : ""}
+        ${d.fee ? `<span>💳 ${lang === "bn" ? "ভিজিট ফি" : "Fee"} ৳${esc(fee(d.fee))}</span>` : ""}
+      </div>
       <a href="#book" class="btn btn-primary btn-sm js-book" data-doc="${i}">${lang === "bn" ? "সিরিয়াল নিন" : "Book"}</a>
-      <a href="#" class="call-link js-call">${lang === "bn" ? "📞 চেম্বারের সময় জানতে কল করুন" : "📞 Call for chamber time"}</a>
+      ${d.time ? "" : `<a href="#" class="call-link js-call">${lang === "bn" ? "📞 চেম্বারের সময় জানতে কল করুন" : "📞 Call for chamber time"}</a>`}
     </div>`).join("");
+  const more = document.getElementById("docMore");
+  more.hidden = limit >= docs.length;
+  more.textContent = lang === "bn" ? `সব ${bnNum(docs.length)} জন ডাক্তার দেখুন ↓` : `Show all ${docs.length} doctors ↓`;
 
+  // Booking dropdown: doctors grouped by department, then services.
   const sel = document.getElementById("f-service");
-  const opts = [...CONFIG.doctors.map(d => `${d.name} — ${lang === "bn" ? d.sbn : d.sen}`),
-                ...CONFIG.services.map(s => lang === "bn" ? s.bn : s.en)];
-  sel.innerHTML = `<option value="">${lang === "bn" ? "বেছে নিন" : "Select"}</option>` +
-    opts.map(o => `<option>${esc(o)}</option>`).join("");
+  const prev = sel.value;
+  const groups = Object.keys(CONFIG.depts).filter(k => CONFIG.doctors.some(d => d.dept === k)).map(k =>
+    `<optgroup label="${esc(CONFIG.depts[k][lang])}">` + CONFIG.doctors.map((d, i) => d.dept !== k ? "" :
+      `<option value="doc:${i}">${esc(d.name)} — ${esc(lang === "bn" ? d.sbn : d.sen)}</option>`).join("") + `</optgroup>`).join("");
+  sel.innerHTML = `<option value="">${lang === "bn" ? "বেছে নিন" : "Select"}</option>` + groups +
+    `<optgroup label="${lang === "bn" ? "সেবা" : "Services"}">` +
+    CONFIG.services.map((s, i) => `<option value="svc:${i}">${esc(lang === "bn" ? s.bn : s.en)}</option>`).join("") + `</optgroup>`;
+  sel.value = prev;
   applyContacts();
 }
 
-let docFilter = "all";
+let docFilter = "all", showAllDocs = false;
 const initials = name => {
   const words = name.replace(/^(Dr\.|ডাঃ)\s*/, "").replace(/^Md\.\s*/, "").split(/\s+/);
   return /[A-Za-z]/.test(words[0]) ? (words[0][0] + (words[1] ? words[1][0] : "")).toUpperCase() : words[0][0];
@@ -422,8 +457,9 @@ const initials = name => {
 document.getElementById("doctors").addEventListener("click", e => {
   const chip = e.target.closest(".chip");
   if (chip) { docFilter = chip.dataset.dept; renderLists(); return; }
+  if (e.target.id === "docMore") { showAllDocs = true; renderLists(); return; }
   const book = e.target.closest(".js-book");
-  if (book) document.getElementById("f-service").selectedIndex = +book.dataset.doc + 1;
+  if (book) document.getElementById("f-service").value = "doc:" + book.dataset.doc;
 });
 
 function applyLang() {
@@ -484,9 +520,9 @@ document.getElementById("bookingForm").addEventListener("submit", async e => {
   if (!form.checkValidity()) { form.reportValidity(); return; }
   const data = Object.fromEntries(new FormData(form));
   // Options are doctors first, then services (see renderLists()).
-  const idx = document.getElementById("f-service").selectedIndex - 1;
-  const doc = CONFIG.doctors[idx];
-  const svc = doc ? null : CONFIG.services[idx - CONFIG.doctors.length];
+  const [kind, ix] = (data.service || "").split(":");
+  const doc = kind === "doc" ? CONFIG.doctors[+ix] : null;
+  const svc = kind === "svc" ? CONFIG.services[+ix] : null;
   const doctor = doc ? doc.name : (svc ? svc.bn : data.service);
   const dept = doc ? doc.dept : null;
 

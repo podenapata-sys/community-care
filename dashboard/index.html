@@ -235,7 +235,7 @@
       <div class="panels2">
         <div class="panel">
           <h2>ডাক্তার অনুযায়ী সিরিয়াল</h2>
-          <p class="cap">গত ৩০ দিন (বাতিল বাদে)</p>
+          <p class="cap">গত ৩০ দিন (বাতিল বাদে), শীর্ষ ১৫ জন</p>
           <div class="chart" id="docChart"></div>
         </div>
         <div class="panel">
@@ -312,7 +312,7 @@ const docLabel = name => { const d = CLINIC.doctors.find(x => x.name === name); 
 // Both stores expose: init(), signIn(), signOut(), listDay(date), listRange(from,to),
 // add(row), update(id, patch), onInsert(cb)
 const DemoStore = (() => {
-  const KEY = "cc-demo-bookings-v1";
+  const KEY = "cc-demo-bookings-v2";
   let rows = [], listeners = [];
   const NAMES = ["মোঃ রফিকুল ইসলাম", "সুমাইয়া আক্তার", "আব্দুল করিম", "নাসরিন সুলতানা", "মোঃ জাহিদ হাসান", "শিরিন আক্তার",
     "তানভীর আহমেদ", "রোকসানা বেগম", "মোঃ সাইফুল ইসলাম", "ফারজানা ইয়াসমিন", "আমিনুল হক", "মাহমুদা খাতুন",
@@ -464,10 +464,12 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && st
 
 /* ================================================================ serials tab */
 function doctorOptions(sel, withAll) {
-  const docs = CLINIC.doctors.map(d => `<option value="${esc(d.name)}">${esc(d.name)} — ${esc(d.sbn)}</option>`).join("");
+  const docs = Object.keys(CLINIC.depts).filter(k => CLINIC.doctors.some(d => d.dept === k)).map(k =>
+    `<optgroup label="${esc(CLINIC.depts[k].bn)}">` + CLINIC.doctors.filter(d => d.dept === k)
+      .map(d => `<option value="${esc(d.name)}">${esc(d.name)} — ${esc(d.sbn)}</option>`).join("") + `</optgroup>`).join("");
   const svcs = CLINIC.services.map(s => `<option value="${esc(s.bn)}">${esc(s.bn)}</option>`).join("");
   sel.innerHTML = (withAll ? `<option value="">সব ডাক্তার ও সেবা</option>` : `<option value="">বেছে নিন</option>`) +
-    `<optgroup label="ডাক্তার">${docs}</optgroup><optgroup label="সেবা">${svcs}</optgroup>`;
+    docs + `<optgroup label="সেবা">${svcs}</optgroup>`;
 }
 
 function filtered() {
@@ -661,7 +663,7 @@ function doctorChart(el, items) {
   items.forEach((d, i) => {
     const y = m.t + i * row + 4, bh = Math.min(16, row - 8), w = iw * d.n / max;
     g += `<text class="lab" x="${m.l - 8}" y="${y + bh / 2 + 4}" text-anchor="end">${esc(short(d.doctor).slice(0, 26))}</text>`;
-    g += `<path d="${barPath(m.l, y, w, bh, true)}" fill="var(--c-online)"/>`;
+    g += `<path d="${barPath(m.l, y, w, bh, true)}" fill="${d.other ? "#aab6dd" : "var(--c-online)"}"/>`;
     g += `<text class="val" x="${m.l + w + 6}" y="${y + bh / 2 + 4}">${bn(d.n)}</text>`;
   });
   svg.innerHTML = g; el.prepend(svg);
@@ -690,7 +692,11 @@ async function renderReports() {
   $("#dailyTable").innerHTML = `<table><tr><th>তারিখ</th><th>সিরিয়াল</th></tr>${days.slice().reverse().map(d => `<tr><td>${dateBn(d.date)}</td><td>${bn(d.n)}</td></tr>`).join("")}</table>`;
 
   const byDoc = {}; active.forEach(r => byDoc[r.doctor] = (byDoc[r.doctor] || 0) + 1);
-  doctorChart($("#docChart"), Object.entries(byDoc).map(([doctor, n]) => ({ doctor, n })).sort((a, b) => b.n - a.n));
+  // Top 15 doctors; the rest fold into one "অন্যান্য" bar so the chart stays readable.
+  const ranked = Object.entries(byDoc).map(([doctor, n]) => ({ doctor, n })).sort((a, b) => b.n - a.n);
+  const top = ranked.slice(0, 15), rest = ranked.slice(15).reduce((s, d) => s + d.n, 0);
+  if (rest) top.push({ doctor: `অন্যান্য (${bn(ranked.length - 15)} জন)`, n: rest, other: true });
+  doctorChart($("#docChart"), top);
 
   const on = inRange.filter(r => r.source === "online").length, man = inRange.length - on;
   $("#srcSplit").innerHTML = inRange.length ? `
