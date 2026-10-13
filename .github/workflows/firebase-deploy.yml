@@ -1,0 +1,24 @@
+# Deploys the website + dashboard to Firebase Hosting on every push to main.
+# One-time setup (see dashboard/SETUP.md):
+#   - repo variable FIREBASE_PROJECT_ID  (Settings → Secrets and variables → Actions → Variables)
+#   - repo secret   FIREBASE_SERVICE_ACCOUNT (the service-account JSON)
+# Until the variable is set this workflow is skipped.
+name: Deploy to Firebase Hosting
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ vars.FIREBASE_PROJECT_ID != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          channelId: live

@@ -368,7 +368,7 @@
 <script src="assets/config.js"></script>
 <script>
 // Clinic data (doctors, services, numbers) lives in assets/clinic-data.js;
-// the Supabase connection lives in assets/config.js.
+// the Firebase connection lives in assets/config.js.
 const CONFIG = window.CLINIC;
 
 const ICONS = {
@@ -496,18 +496,12 @@ document.getElementById("langBtn").addEventListener("click", () => {
   applyLang();
 });
 
-// Supabase client, loaded only when assets/config.js is filled in.
+// Firebase data layer, loaded only when assets/config.js has a Firebase config.
 let dbPromise = null;
 function getDb() {
-  const cfg = window.APP_CONFIG || {};
-  if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) return Promise.resolve(null);
-  dbPromise = dbPromise || new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-    s.onload = () => resolve(window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey));
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
+  const fbCfg = (window.APP_CONFIG || {}).firebase || {};
+  if (!fbCfg.apiKey || !fbCfg.projectId) return Promise.resolve(null);
+  dbPromise = dbPromise || import("./assets/firebase-db.js").then(async m => { await m.init(fbCfg); return m; });
   return dbPromise;
 }
 
@@ -519,7 +513,7 @@ document.getElementById("bookingForm").addEventListener("submit", async e => {
   const form = e.target;
   if (!form.checkValidity()) { form.reportValidity(); return; }
   const data = Object.fromEntries(new FormData(form));
-  // Options are doctors first, then services (see renderLists()).
+  // Option values are "doc:<index>" or "svc:<index>" (see renderLists()).
   const [kind, ix] = (data.service || "").split(":");
   const doc = kind === "doc" ? CONFIG.doctors[+ix] : null;
   const svc = kind === "svc" ? CONFIG.services[+ix] : null;
@@ -533,12 +527,10 @@ document.getElementById("bookingForm").addEventListener("submit", async e => {
     let serial = null;
     const db = await getDb();
     if (db) {
-      const { data: s, error } = await db.rpc("create_booking", {
-        p_name: data.name, p_phone: data.phone, p_age: data.age ? +data.age : null,
-        p_date: data.date, p_doctor: doctor, p_dept: dept, p_note: data.note || null
-      });
-      if (error) throw error;
-      serial = s;
+      ({ serial } = await db.createBooking({
+        patient_name: data.name, phone: data.phone, age: data.age || null,
+        booking_date: data.date, doctor, dept, note: data.note || null
+      }, "online"));
     }
     msg.style.background = ""; msg.style.color = "";
     msg.textContent = serial

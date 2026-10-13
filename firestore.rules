@@ -1,0 +1,88 @@
+rules_version = '2';
+
+// Community Care Hospital — booking security rules.
+//
+//   Public (website visitors): can create an online booking through the
+//     counter/limit transaction in assets/firebase-db.js. Cannot read any booking.
+//   Staff (signed in AND listed in /staff/{uid}): read bookings, add manual
+//     bookings, change a booking's status. Nobody can delete.
+//
+// Integrity without Cloud Functions: a booking is only accepted when, at the end
+// of the same transaction, counters/{date|doctor}.n equals its serialNo, and (for
+// online bookings) limits/{date|phone}.n is at most 3.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function path(col, id) { return /databases/$(database)/documents/$(col)/$(id); }
+
+    function isStaff() {
+      return request.auth != null && exists(path('staff', request.auth.uid));
+    }
+
+    function optString(b, k, max) {
+      return !(k in b) || b[k] == null || (b[k] is string && b[k].size() <= max);
+    }
+
+    // bookingDate is "YYYY-MM-DD", from yesterday up to 60 days ahead.
+    function dateOk(d) {
+      return d is string && d.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && timestamp.date(int(d[0:4]), int(d[5:7]), int(d[8:10])) > request.time - duration.value(2, 'd')
+        && timestamp.date(int(d[0:4]), int(d[5:7]), int(d[8:10])) < request.time + duration.value(61, 'd');
+    }
+
+    function validBooking(b) {
+      return b.keys().hasOnly(['serialNo', 'bookingDate', 'doctor', 'dept', 'patientName', 'phone',
+                               'age', 'note', 'status', 'source', 'createdAt', 'updatedAt'])
+        && b.keys().hasAll(['serialNo', 'bookingDate', 'doctor', 'patientName', 'phone',
+                            'status', 'source', 'createdAt', 'updatedAt'])
+        && b.serialNo is int && b.serialNo >= 1
+        && dateOk(b.bookingDate)
+        && b.doctor is string && b.doctor.size() >= 2 && b.doctor.size() <= 120 && !b.doctor.matches('.*[/|].*')
+        && b.patientName is string && b.patientName.size() >= 2 && b.patientName.size() <= 80
+        && b.phone is string && b.phone.matches('^01[3-9][0-9]{8}$')
+        && (!('age' in b) || b.age == null || (b.age is int && b.age >= 0 && b.age <= 120))
+        && optString(b, 'dept', 40)
+        && optString(b, 'note', 500)
+        && b.status == 'new'
+        && b.createdAt == request.time && b.updatedAt == request.time
+        && getAfter(path('counters', b.bookingDate + '|' + b.doctor)).data.n == b.serialNo;
+    }
+
+    function withinDailyLimit(b) {
+      return getAfter(path('limits', b.bookingDate + '|' + b.phone)).data.n <= 3;
+    }
+
+    match /bookings/{id} {
+      allow create: if validBooking(request.resource.data)
+        && ((request.resource.data.source == 'online' && withinDailyLimit(request.resource.data))
+            || (request.resource.data.source == 'manual' && isStaff()));
+      allow read: if isStaff();
+      allow update: if isStaff()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.status in ['new', 'confirmed', 'arrived', 'cancelled']
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    // Per doctor per day serial counter. Readable by id only (no listing).
+    match /counters/{id} {
+      allow get: if true;
+      allow create: if request.resource.data.keys().hasOnly(['n']) && request.resource.data.n == 1;
+      allow update: if request.resource.data.keys().hasOnly(['n']) && request.resource.data.n == resource.data.n + 1;
+    }
+
+    // Per phone per day booking count (anti-spam). Readable by id only.
+    match /limits/{id} {
+      allow get: if true;
+      allow create: if request.resource.data.keys().hasOnly(['n']) && request.resource.data.n == 1;
+      allow update: if request.resource.data.keys().hasOnly(['n'])
+        && request.resource.data.n == resource.data.n + 1 && request.resource.data.n <= 3;
+    }
+
+    // Staff allowlist — managed only from the Firebase console.
+    match /staff/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

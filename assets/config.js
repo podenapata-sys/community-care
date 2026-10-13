@@ -1,8 +1,12 @@
-/* Supabase connection — see dashboard/SETUP.md.
-   Leave both empty to run the website and dashboard in demo mode.
-   The anon key is public by design: database security comes from the
-   row-level security rules in supabase/schema.sql. */
+/* Firebase connection — see dashboard/SETUP.md.
+   Leave apiKey/projectId empty to run the website and dashboard in demo mode.
+   These values are public by design (they ship to every visitor's browser);
+   the data is protected by firestore.rules, not by keeping this secret. */
 window.APP_CONFIG = {
-  supabaseUrl: "",       // e.g. "https://abcdefgh.supabase.co"
-  supabaseAnonKey: ""    // Project Settings → API → "anon public" key
+  firebase: {
+    apiKey: "",            // Firebase console → Project settings → Your apps → Web app
+    authDomain: "",        // e.g. "community-care-khulna.firebaseapp.com"
+    projectId: "",         // e.g. "community-care-khulna"
+    appId: ""
+  }
 };

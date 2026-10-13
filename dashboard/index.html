@@ -284,7 +284,7 @@
 "use strict";
 const CLINIC = window.CLINIC;
 const CFG = window.APP_CONFIG || {};
-const LIVE = !!(CFG.supabaseUrl && CFG.supabaseAnonKey);
+const LIVE = !!(CFG.firebase && CFG.firebase.apiKey && CFG.firebase.projectId);
 
 /* ================================================================ utils */
 const $ = s => document.querySelector(s);
@@ -377,39 +377,24 @@ const DemoStore = (() => {
   };
 })();
 
-const SupaStore = (() => {
-  let sb = null, channel = null;
-  const COLS = "id,serial_no,booking_date,doctor,dept,patient_name,phone,age,note,status,source,created_at,updated_at";
-  const load = () => new Promise((res, rej) => {
-    const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-    s.onload = res; s.onerror = () => rej(new Error("supabase-js load failed"));
-    document.head.appendChild(s);
-  });
-  const must = ({ data, error }) => { if (error) throw error; return data; };
+// Firebase (Firestore + Auth) — see assets/firebase-db.js and firestore.rules.
+const FireStore = (() => {
+  let api = null, unsub = null;
   return {
     demo: false,
-    async init() { await load(); sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey); },
-    async session() { const { data } = await sb.auth.getSession(); return !!data.session; },
-    async signIn(email, password) { const { error } = await sb.auth.signInWithPassword({ email, password }); if (error) throw error; return true; },
-    async signOut() { if (channel) sb.removeChannel(channel); await sb.auth.signOut(); },
-    async listDay(date) { return must(await sb.from("bookings").select(COLS).eq("booking_date", date).order("serial_no")); },
-    async listRange(from, to) {
-      return must(await sb.from("bookings").select("booking_date,doctor,status,source")
-        .gte("booking_date", from).lte("booking_date", to).limit(10000));
-    },
-    async add(r) { return must(await sb.from("bookings").insert({ ...r, source: "manual" }).select(COLS).single()); },
-    async update(id, patch) { return must(await sb.from("bookings").update(patch).eq("id", id).select(COLS).single()); },
-    onInsert(cb) {
-      channel = sb.channel("bookings-inserts")
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "bookings" }, p => cb(p.new))
-        .subscribe(st => setLive(st === "SUBSCRIBED"));
-      return true;
-    }
+    async init() { api = await import("../assets/firebase-db.js"); await api.init(CFG.firebase); },
+    session: () => api.session(),
+    signIn: (email, password) => api.signIn(email, password),
+    async signOut() { if (unsub) unsub(); await api.signOut(); },
+    listDay: date => api.listDay(date),
+    listRange: (from, to) => api.listRange(from, to),
+    add: row => api.addManual(row),
+    update: (id, patch) => api.updateStatus(id, patch.status),
+    onInsert(cb) { unsub = api.onNewBookings(cb, setLive); return true; }
   };
 })();
 
-const store = LIVE ? SupaStore : DemoStore;
+const store = LIVE ? FireStore : DemoStore;
 
 /* ================================================================ state */
 const state = { date: dhakaToday(), doctor: "", search: "", status: "", rows: [], unseen: 0, sound: true, tab: "serials", flash: new Set() };
@@ -743,7 +728,11 @@ async function enterApp() {
 $("#loginForm").addEventListener("submit", async e => {
   e.preventDefault(); $("#loginErr").textContent = "";
   try { await store.signIn($("#lEmail").value.trim(), $("#lPass").value); await enterApp(); }
-  catch (err) { $("#loginErr").textContent = "লগইন হয়নি: ইমেইল বা পাসওয়ার্ড ভুল।"; }
+  catch (err) {
+    $("#loginErr").textContent = /not_staff/.test(err && err.message)
+      ? "এই অ্যাকাউন্টের ড্যাশবোর্ড ব্যবহারের অনুমতি নেই। অ্যাডমিনের সাথে যোগাযোগ করুন।"
+      : "লগইন হয়নি: ইমেইল বা পাসওয়ার্ড ভুল।";
+  }
 });
 $("#demoBtn").addEventListener("click", enterApp);
 

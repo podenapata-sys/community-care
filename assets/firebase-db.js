@@ -1,0 +1,119 @@
+/* Firebase data layer shared by the website (index.html) and the staff
+   dashboard (dashboard/index.html). Loaded with dynamic import() only when
+   assets/config.js has a Firebase config; otherwise both pages run in demo mode.
+   Security is enforced by firestore.rules, not by this file. */
+
+const SDK = "https://www.gstatic.com/firebasejs/10.14.1/";
+let fb, fs, au, app, db, auth;
+
+export async function init(cfg) {
+  if (db) return;
+  [fb, fs] = await Promise.all([import(SDK + "firebase-app.js"), import(SDK + "firebase-firestore.js")]);
+  const { emulator, ...config } = cfg;
+  app = fb.initializeApp(config);
+  db = fs.getFirestore(app);
+  if (emulator) fs.connectFirestoreEmulator(db, "127.0.0.1", emulator.firestore || 8080);
+  init.emulator = emulator;
+}
+
+async function getAuthApi() {
+  if (!auth) {
+    au = await import(SDK + "firebase-auth.js");
+    auth = au.getAuth(app);
+    if (init.emulator) au.connectAuthEmulator(auth, `http://127.0.0.1:${init.emulator.auth || 9099}`, { disableWarnings: true });
+  }
+  return au;
+}
+
+// Firestore document -> the row shape the dashboard uses.
+function toRow(snap) {
+  const d = snap.data();
+  const iso = t => (t && t.toDate ? t.toDate() : new Date()).toISOString();
+  return {
+    id: snap.id, serial_no: d.serialNo, booking_date: d.bookingDate, doctor: d.doctor, dept: d.dept ?? null,
+    patient_name: d.patientName, phone: d.phone, age: d.age ?? null, note: d.note ?? null,
+    status: d.status, source: d.source, created_at: iso(d.createdAt), updated_at: iso(d.updatedAt)
+  };
+}
+
+/* Creates a booking and returns { id, serial }.
+   One transaction bumps the doctor/day serial counter, (for online bookings) the
+   phone/day limit, and writes the booking — the rules check all three agree. */
+export async function createBooking(row, source = "online") {
+  const phone = String(row.phone || "").replace(/\D/g, "").replace(/^88(?=01)/, "");
+  const counterRef = fs.doc(db, "counters", `${row.booking_date}|${row.doctor}`);
+  const limitRef = fs.doc(db, "limits", `${row.booking_date}|${phone}`);
+  const bookingRef = fs.doc(fs.collection(db, "bookings"));
+  const serial = await fs.runTransaction(db, async tx => {
+    const c = await tx.get(counterRef);
+    const l = source === "online" ? await tx.get(limitRef) : null;
+    const n = (c.exists() ? c.data().n : 0) + 1;
+    if (l) {
+      const used = (l.exists() ? l.data().n : 0) + 1;
+      if (used > 3) throw new Error("too_many_bookings");
+      tx.set(limitRef, { n: used });
+    }
+    tx.set(counterRef, { n });
+    tx.set(bookingRef, {
+      serialNo: n, bookingDate: row.booking_date, doctor: row.doctor, dept: row.dept ?? null,
+      patientName: String(row.patient_name || "").trim(), phone,
+      age: row.age === "" || row.age == null ? null : Math.round(+row.age),
+      note: row.note ? String(row.note).trim().slice(0, 500) : null,
+      status: "new", source, createdAt: fs.serverTimestamp(), updatedAt: fs.serverTimestamp()
+    });
+    return n;
+  });
+  return { id: bookingRef.id, serial };
+}
+
+/* ------------------------------------------------------------- staff only */
+async function isStaff(user) {
+  if (!user) return false;
+  const s = await fs.getDoc(fs.doc(db, "staff", user.uid)).catch(() => null);
+  return !!(s && s.exists());
+}
+
+export async function signIn(email, password) {
+  const a = await getAuthApi();
+  const cred = await a.signInWithEmailAndPassword(auth, email, password);
+  if (!(await isStaff(cred.user))) { await a.signOut(auth); throw new Error("not_staff"); }
+}
+
+export async function signOut() { const a = await getAuthApi(); await a.signOut(auth); }
+
+// Resolves true if a staff member is already signed in on this browser.
+export async function session() {
+  const a = await getAuthApi();
+  const user = await new Promise(res => { const off = a.onAuthStateChanged(auth, u => { off(); res(u); }); });
+  return isStaff(user);
+}
+
+export async function listDay(date) {
+  const q = fs.query(fs.collection(db, "bookings"), fs.where("bookingDate", "==", date));
+  return (await fs.getDocs(q)).docs.map(toRow);
+}
+
+export async function listRange(from, to) {
+  const q = fs.query(fs.collection(db, "bookings"), fs.where("bookingDate", ">=", from), fs.where("bookingDate", "<=", to));
+  return (await fs.getDocs(q)).docs.map(toRow);
+}
+
+export async function addManual(row) {
+  const { id, serial } = await createBooking(row, "manual");
+  const now = new Date().toISOString();
+  return { ...row, id, serial_no: serial, status: "new", source: "manual", created_at: now, updated_at: now };
+}
+
+export async function updateStatus(id, status) {
+  await fs.updateDoc(fs.doc(db, "bookings", id), { status, updatedAt: fs.serverTimestamp() });
+  return { status };
+}
+
+// Calls cb(row) for every booking created after this moment; onState(true/false) for the live dot.
+export function onNewBookings(cb, onState) {
+  const q = fs.query(fs.collection(db, "bookings"), fs.where("createdAt", ">", fs.Timestamp.now()));
+  return fs.onSnapshot(q, snap => {
+    onState && onState(true);
+    snap.docChanges().forEach(ch => { if (ch.type === "added") cb(toRow(ch.doc)); });
+  }, () => onState && onState(false));
+}
