@@ -4,9 +4,9 @@
    the data is protected by firestore.rules, not by keeping this secret. */
 window.APP_CONFIG = {
   firebase: {
-    apiKey: "",            // Firebase console → Project settings → Your apps → Web app
-    authDomain: "",        // e.g. "community-care-khulna.firebaseapp.com"
-    projectId: "",         // e.g. "community-care-khulna"
-    appId: ""
+    apiKey: "AIzaSyB2Gw2bupLDmD8Jk1novRPC11x8yMVQ9IA",
+    authDomain: "community-care-khulna.firebaseapp.com",
+    projectId: "community-care-khulna",
+    appId: "1:358809903266:web:f8f13ce1ab5a775709f7fb"
   }
 };
