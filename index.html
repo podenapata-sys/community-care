@@ -3,15 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Community Care Hospital & Diagnostic — Khulna</title>
-<meta name="description" content="Community Care Hospital & Diagnostic, Tetultola Mor, Khulna. Book doctor appointments and diagnostic tests online.">
+<title>কমিউনিটি কেয়ার হাসপাতাল, খুলনা — অনলাইনে ডাক্তারের সিরিয়াল</title>
+<meta name="description" content="কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক, তেঁতুলতলা মোড়, খুলনা। ৩৯ জন বিশেষজ্ঞ ডাক্তারের সিরিয়াল অনলাইনে নিন। Community Care Hospital & Diagnostic, Khulna — book doctor appointments online.">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#0d2470">
 <link rel="icon" type="image/png" href="assets/logo-mark.png">
 <link rel="apple-touch-icon" href="assets/logo-mark.png">
 <meta property="og:title" content="কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক">
 <meta property="og:description" content="তেঁতুলতলা মোড়, খুলনা — অনলাইনে ডাক্তারের সিরিয়াল নিন">
-<meta property="og:image" content="assets/logo.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://community-care-khulna-2a364.web.app/">
+<meta property="og:image" content="https://community-care-khulna-2a364.web.app/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://community-care-khulna-2a364.web.app/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "MedicalClinic",
+  "name": "Community Care Hospital & Diagnostic", "alternateName": "কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক",
+  "url": "https://community-care-khulna-2a364.web.app/", "logo": "https://community-care-khulna-2a364.web.app/assets/logo.png", "image": "https://community-care-khulna-2a364.web.app/assets/og.png", "telephone": "+8801337661299",
+  "address": {"@type": "PostalAddress", "streetAddress": "19 KDA Avenue, Mohsen Tower, Tetultola Mor", "addressLocality": "Khulna", "addressCountry": "BD"}}
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -180,6 +194,23 @@
   .map { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); min-height: 320px; }
   .map iframe { width: 100%; height: 100%; min-height: 320px; border: 0; display: block; }
 
+  /* Inline form errors & doctor hint */
+  .err-msg { display: none; color: #b42318; font-size: 13px; margin: -10px 0 12px; }
+  .invalid .err-msg { display: block; }
+  .invalid input, .invalid select { border-color: #e5484d; }
+  .svc-hint { font-size: 13px; color: var(--indigo); background: var(--cyan-soft); border-radius: 8px; padding: 8px 10px; margin: -6px 0 14px; }
+  .svc-hint[hidden] { display: none; }
+  #book { scroll-margin-top: 72px; }
+  .success .big { font-size: 15px; }
+  .success .serial-no { display: block; font-size: 44px; font-weight: 700; line-height: 1.1; color: var(--navy); margin: 4px 0; }
+  .success .btn { margin-top: 12px; background: #25d366; color: #fff; }
+  .doc-search { display: block; max-width: 420px; margin: 0 auto 14px; }
+  .doc-search input { margin: 0; border-radius: 999px; padding: 12px 18px; }
+  .doc-empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 24px; }
+
+  /* Mobile bottom action bar (replaces the round buttons on phones) */
+  .mbar { display: none; }
+
   footer { background: var(--navy); color: rgba(255,255,255,.75); padding: 28px 0; font-size: 14px; }
   .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
 
@@ -207,6 +238,19 @@
     section { padding: 52px 0; }
     .brand img { height: 38px; }
     .nav-right .btn { display: none; }
+    .fab { display: none; }
+    body { padding-bottom: 72px; }
+    .chips { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; margin: 0 -16px 20px; padding: 0 16px 4px; scrollbar-width: none; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip { flex: none; }
+    .mbar {
+      display: flex; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--card);
+      border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(13,36,112,.08); transition: transform .2s;
+    }
+    .mbar .btn { flex: 1; }
+    .mbar .btn-call { flex: 0 0 auto; background: var(--card); color: var(--navy); border: 1px solid var(--navy); }
+    .mbar.away { transform: translateY(110%); }
   }
 </style>
 </head>
@@ -237,7 +281,7 @@
       <h1 data-bn="লাইনে না দাঁড়িয়ে, ঘরে বসেই ডাক্তারের সিরিয়াল নিন" data-en="Skip the queue. Book your doctor from home."></h1>
       <p data-bn="বিশেষজ্ঞ ডাক্তার, আধুনিক ডায়াগনস্টিক ও জরুরি সেবা — এক জায়গায়। ২ মিনিটে অনলাইনে অ্যাপয়েন্টমেন্ট বুক করুন, WhatsApp-এ কনফার্মেশন পান।" data-en="Specialist doctors, modern diagnostics and emergency care in one place. Book online in 2 minutes and get confirmation on WhatsApp."></p>
       <div class="hero-ctas">
-        <a href="#book" class="btn btn-primary" data-bn="অ্যাপয়েন্টমেন্ট বুক করুন" data-en="Book Appointment"></a>
+        <a href="#book" class="btn btn-primary" data-bn="সিরিয়াল নিন" data-en="Book Appointment"></a>
         <a href="#" class="btn btn-ghost js-call" data-bn="📞 কল করুন" data-en="📞 Call Us"></a>
       </div>
       <div class="hero-stats">
@@ -274,6 +318,7 @@
       <div class="kicker" data-bn="বিশেষজ্ঞ ডাক্তার" data-en="SPECIALISTS"></div>
       <h2 data-bn="আমাদের অভিজ্ঞ বিশেষজ্ঞ ডাক্তারগণ" data-en="Our experienced specialists"></h2>
     </div>
+    <label class="doc-search"><input type="search" id="docSearch" autocomplete="off" aria-label="ডাক্তার খুঁজুন"></label>
     <div class="chips" id="docFilter"></div>
     <div class="grid g3" id="doctorsGrid"></div>
     <div style="text-align:center;margin-top:20px"><button type="button" class="btn btn-ghost-dark" id="docMore" hidden></button></div>
@@ -289,22 +334,26 @@
       </div>
       <ul class="steps">
         <li><span class="n">১</span><div><b data-bn="ফর্ম পূরণ করুন" data-en="Fill the form"></b><p data-bn="নাম, ফোন নম্বর ও ডাক্তার/টেস্ট বেছে নিন" data-en="Your name, phone and the doctor or test you need"></p></div></li>
-        <li><span class="n">২</span><div><b data-bn="কনফার্মেশন পান" data-en="Get confirmation"></b><p data-bn="কয়েক মিনিটের মধ্যে WhatsApp/SMS-এ সিরিয়াল নম্বর" data-en="Serial number on WhatsApp/SMS within minutes"></p></div></li>
+        <li><span class="n">২</span><div><b data-bn="কনফার্মেশন পান" data-en="Get confirmation"></b><p data-bn="কয়েক মিনিটের মধ্যে WhatsApp বা ফোনে কনফার্মেশন" data-en="Confirmation on WhatsApp or by phone within minutes"></p></div></li>
         <li><span class="n">৩</span><div><b data-bn="সময়মতো আসুন" data-en="Arrive on time"></b><p data-bn="লাইনে দাঁড়ানোর ঝামেলা নেই" data-en="No waiting in line"></p></div></li>
       </ul>
     </div>
 
     <form id="bookingForm" novalidate>
       <div class="row">
-        <div><label for="f-name" data-bn="রোগীর নাম *" data-en="Patient name *"></label><input id="f-name" name="name" required></div>
-        <div><label for="f-phone" data-bn="মোবাইল নম্বর *" data-en="Mobile number *"></label><input id="f-phone" name="phone" type="tel" inputmode="tel" pattern="01[3-9][0-9]{8}" placeholder="01XXXXXXXXX" required></div>
+        <div><label for="f-name" data-bn="রোগীর নাম *" data-en="Patient name *"></label><input id="f-name" name="name" required minlength="2" maxlength="80" autocomplete="name"><small class="err-msg" data-bn="রোগীর নাম লিখুন" data-en="Please enter the patient's name"></small></div>
+        <div><label for="f-phone" data-bn="মোবাইল নম্বর *" data-en="Mobile number *"></label><input id="f-phone" name="phone" type="tel" inputmode="tel" pattern="01[3-9][0-9]{8}" placeholder="01XXXXXXXXX" required autocomplete="tel"><small class="err-msg" data-bn="সঠিক মোবাইল নম্বর লিখুন (যেমন 01712345678)" data-en="Enter a valid mobile number (e.g. 01712345678)"></small></div>
       </div>
       <div class="row">
         <div><label for="f-age" data-bn="বয়স" data-en="Age"></label><input id="f-age" name="age" type="number" min="0" max="120"></div>
-        <div><label for="f-date" data-bn="তারিখ *" data-en="Date *"></label><input id="f-date" name="date" type="date" required></div>
+        <div><label for="f-date" data-bn="তারিখ *" data-en="Date *"></label><input id="f-date" name="date" type="date" required><small class="err-msg" data-bn="তারিখ বেছে নিন" data-en="Please pick a date"></small></div>
       </div>
-      <label for="f-service" data-bn="ডাক্তার / সেবা *" data-en="Doctor / Service *"></label>
-      <select id="f-service" name="service" required></select>
+      <div>
+        <label for="f-service" data-bn="ডাক্তার / সেবা *" data-en="Doctor / Service *"></label>
+        <select id="f-service" name="service" required></select>
+        <small class="err-msg" data-bn="ডাক্তার বা সেবা বেছে নিন" data-en="Please choose a doctor or service"></small>
+      </div>
+      <div class="svc-hint" id="svcHint" hidden></div>
       <label for="f-note" data-bn="সমস্যা সংক্ষেপে (ঐচ্ছিক)" data-en="Short note (optional)"></label>
       <textarea id="f-note" name="note" rows="3"></textarea>
       <button type="submit" class="btn btn-primary" style="width:100%" data-bn="সিরিয়াল কনফার্ম করুন" data-en="Confirm Booking"></button>
@@ -348,6 +397,11 @@
     <span data-bn="তেঁতুলতলা মোড়, খুলনা" data-en="Tetultola Mor, Khulna"></span>
   </div>
 </footer>
+
+<div class="mbar" id="mbar">
+  <a href="#" class="btn btn-call js-call" data-bn="📞 কল" data-en="📞 Call"></a>
+  <a href="#book" class="btn btn-primary" data-bn="📅 সিরিয়াল নিন" data-en="📅 Book Now"></a>
+</div>
 
 <div class="fab">
   <a href="#" class="wa js-wa" aria-label="WhatsApp">
@@ -400,8 +454,9 @@ function renderLists() {
   // Highlighted doctors first, then source order; "all" shows 9 until expanded.
   const docs = CONFIG.doctors.map((d, i) => ({ d, i }))
     .filter(x => docFilter === "all" || x.d.dept === docFilter)
+    .filter(x => !docQuery || docText(x.d).includes(docQuery))
     .sort((x, y) => (y.d.highlight ? 1 : 0) - (x.d.highlight ? 1 : 0) || x.i - y.i);
-  const limit = docFilter === "all" && !showAllDocs ? 9 : docs.length;
+  const limit = docFilter === "all" && !showAllDocs && !docQuery ? 9 : docs.length;
   const bnNum = n => lang === "bn" ? Number(n).toLocaleString("bn-BD") : String(n);
   const fee = f => lang === "bn" ? f.replace(/\d+/g, n => bnNum(+n)) : f;
   const time = t => lang === "bn" && t === "3pm–9pm" ? "বিকাল ৩টা – রাত ৯টা" : t;
@@ -424,7 +479,12 @@ function renderLists() {
       </div>
       <a href="#book" class="btn btn-primary btn-sm js-book" data-doc="${i}">${lang === "bn" ? "সিরিয়াল নিন" : "Book"}</a>
       ${d.time ? "" : `<a href="#" class="call-link js-call">${lang === "bn" ? "📞 চেম্বারের সময় জানতে কল করুন" : "📞 Call for chamber time"}</a>`}
-    </div>`).join("");
+    </div>`).join("") || `<p class="doc-empty">${lang === "bn"
+      ? `কাউকে পাওয়া যায়নি। <a href="#" class="js-call" style="color:var(--indigo)">📞 কল করে জেনে নিন</a>`
+      : `No doctor found. <a href="#" class="js-call" style="color:var(--indigo)">📞 Call us</a>`}</p>`;
+  document.getElementById("docSearch").placeholder = lang === "bn" ? "🔍 ডাক্তারের নাম বা রোগ লিখুন (যেমন: শিশু, হার্ট)" : "🔍 Search doctor or specialty (e.g. child, heart)";
+  document.querySelector(".js-doc-count").textContent = bnNum(CONFIG.doctors.length) + "+";
+  document.querySelector(".js-dept-count").textContent = bnNum(present.length);
   const more = document.getElementById("docMore");
   more.hidden = limit >= docs.length;
   more.textContent = lang === "bn" ? `সব ${bnNum(docs.length)} জন ডাক্তার দেখুন ↓` : `Show all ${docs.length} doctors ↓`;
@@ -439,8 +499,27 @@ function renderLists() {
     `<optgroup label="${lang === "bn" ? "সেবা" : "Services"}">` +
     CONFIG.services.map((s, i) => `<option value="svc:${i}">${esc(lang === "bn" ? s.bn : s.en)}</option>`).join("") + `</optgroup>`;
   sel.value = prev;
+  updateHint();
   applyContacts();
 }
+
+// Everything a visitor might type to find a doctor: name, specialty (bn/en), department, degrees.
+const docText = d => [d.name, d.sbn, d.sen, d.deg, (CONFIG.depts[d.dept] || {}).bn, (CONFIG.depts[d.dept] || {}).en].join(" ").toLowerCase();
+let docQuery = "";
+document.getElementById("docSearch").addEventListener("input", e => { docQuery = e.target.value.trim().toLowerCase(); renderLists(); });
+
+// Fee & chamber time under the doctor select, so patients know before they book.
+function updateHint() {
+  const hint = document.getElementById("svcHint");
+  const [kind, ix] = document.getElementById("f-service").value.split(":");
+  const d = kind === "doc" ? CONFIG.doctors[+ix] : null;
+  if (!d || !(d.fee || d.time)) { hint.hidden = true; return; }
+  const bnN = t => lang === "bn" ? String(t).replace(/\d/g, c => "০১২৩৪৫৬৭৮৯"[c]) : t;
+  const time = d.time === "3pm–9pm" ? (lang === "bn" ? "বিকাল ৩টা – রাত ৯টা" : "3 PM – 9 PM") : d.time;
+  hint.textContent = [d.fee ? (lang === "bn" ? "ভিজিট ফি ৳" : "Fee ৳") + bnN(d.fee) : "", d.time ? (lang === "bn" ? "সময়: " : "Time: ") + time : ""].filter(Boolean).join(" · ");
+  hint.hidden = false;
+}
+document.getElementById("f-service").addEventListener("change", () => { updateHint(); validateField(document.getElementById("f-service")); });
 
 let docFilter = "all", showAllDocs = false;
 const initials = name => {
@@ -453,7 +532,11 @@ document.getElementById("doctors").addEventListener("click", e => {
   if (chip) { docFilter = chip.dataset.dept; renderLists(); return; }
   if (e.target.id === "docMore") { showAllDocs = true; renderLists(); return; }
   const book = e.target.closest(".js-book");
-  if (book) document.getElementById("f-service").value = "doc:" + book.dataset.doc;
+  if (book) {
+    document.getElementById("f-service").value = "doc:" + book.dataset.doc;
+    updateHint(); document.getElementById("f-service").closest("div").classList.remove("invalid");
+    setTimeout(() => document.getElementById("f-name").focus({ preventScroll: true }), 400);
+  }
 });
 
 function applyLang() {
@@ -499,13 +582,31 @@ function getDb() {
   return dbPromise;
 }
 
+const dhakaToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" }).format(new Date());
 const dateInput = document.getElementById("f-date");
-dateInput.min = new Date().toISOString().split("T")[0];
+dateInput.min = dhakaToday();
+dateInput.value = dhakaToday();
+
+// Accepts "+880 1711-000001", "০১৭১১০০০০০১" etc. and rewrites it as 01711000001.
+const normPhone = v => String(v).replace(/[০-৯]/g, c => "০১২৩৪৫৬৭৮৯".indexOf(c)).replace(/\D/g, "").replace(/^0?88(?=01)/, "");
+const phoneInput = document.getElementById("f-phone");
+phoneInput.addEventListener("blur", () => { if (phoneInput.value) phoneInput.value = normPhone(phoneInput.value); });
+
+// Inline errors instead of the browser's (English) popups.
+function validateField(el) {
+  if (el === phoneInput && el.value) el.value = normPhone(el.value);
+  const ok = el.checkValidity();
+  el.closest("div").classList.toggle("invalid", !ok);
+  return ok;
+}
+document.querySelectorAll("#bookingForm [required]").forEach(el =>
+  el.addEventListener("input", () => { if (el.closest("div").classList.contains("invalid")) validateField(el); }));
 
 document.getElementById("bookingForm").addEventListener("submit", async e => {
   e.preventDefault();
   const form = e.target;
-  if (!form.checkValidity()) { form.reportValidity(); return; }
+  const bad = [...form.querySelectorAll("[required]")].filter(el => !validateField(el));
+  if (bad.length) { bad[0].focus(); return; }
   const data = Object.fromEntries(new FormData(form));
   // Option values are "doc:<index>" or "svc:<index>" (see renderLists()).
   const [kind, ix] = (data.service || "").split(":");
@@ -527,15 +628,23 @@ document.getElementById("bookingForm").addEventListener("submit", async e => {
       }, "online"));
     }
     msg.style.background = ""; msg.style.color = "";
-    msg.textContent = serial
-      ? (lang === "bn"
-          ? `ধন্যবাদ ${data.name}! ${doctor}-এর কাছে আপনার সিরিয়াল নম্বর: ${serial}। শীঘ্রই ${data.phone} নম্বরে কনফার্ম করা হবে।`
-          : `Thank you ${data.name}! Your serial number with ${doctor} is ${serial}. We will confirm on ${data.phone} shortly.`)
-      : (lang === "bn"
-          ? `ধন্যবাদ ${data.name}! আপনার অনুরোধ পেয়েছি। শীঘ্রই ${data.phone} নম্বরে সিরিয়াল কনফার্ম করা হবে।`
-          : `Thank you ${data.name}! We received your request and will confirm your serial on ${data.phone} shortly.`);
+    const bnN = t => lang === "bn" ? String(t).replace(/\d/g, c => "০১২৩৪৫৬৭৮৯"[c]) : String(t);
+    const when = new Date(data.date + "T00:00:00Z").toLocaleDateString(lang === "bn" ? "bn-BD" : "en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+    const waHref = (document.querySelector(".js-wa") || {}).href || "#";
+    const waText = encodeURIComponent(lang === "bn"
+      ? `আসসালামু আলাইকুম, আমি ${data.name}। ${when} ${doctor}-এর কাছে সিরিয়াল নিয়েছি${serial ? ` (নম্বর ${serial})` : ""}।`
+      : `Hello, I am ${data.name}. I booked ${doctor} for ${when}${serial ? ` (serial ${serial})` : ""}.`);
+    msg.innerHTML = lang === "bn"
+      ? `<div class="big">ধন্যবাদ ${esc(data.name)}! ✅</div>` +
+        (serial ? `<div>${esc(doctor)}-এর কাছে আপনার সিরিয়াল নম্বর:<span class="serial-no">${bnN(serial)}</span></div>` : `<div>আপনার অনুরোধ পেয়েছি।</div>`) +
+        `<div>📅 ${esc(when)} · চেম্বারে এসে এই নম্বর বলুন।</div><div>শীঘ্রই ${esc(data.phone)} নম্বরে কনফার্ম করা হবে।</div>`
+      : `<div class="big">Thank you ${esc(data.name)}! ✅</div>` +
+        (serial ? `<div>Your serial number with ${esc(doctor)}:<span class="serial-no">${serial}</span></div>` : `<div>We received your request.</div>`) +
+        `<div>📅 ${esc(when)} · Tell this number at the chamber.</div><div>We will confirm on ${esc(data.phone)} shortly.</div>`;
+    if (/wa\.me/.test(waHref)) msg.innerHTML += `<a class="btn btn-sm" target="_blank" rel="noopener" href="${esc(waHref.split("?")[0])}?text=${waText}">${lang === "bn" ? "WhatsApp-এ জানান" : "Message on WhatsApp"}</a>`;
     msg.style.display = "block";
-    form.reset();
+    msg.scrollIntoView({ behavior: "smooth", block: "center" });
+    form.reset(); dateInput.value = dhakaToday(); updateHint();
   } catch (err) {
     const tooMany = /too_many_bookings/.test(err && err.message);
     msg.style.background = "#fdecee"; msg.style.color = "#9b1c31";
@@ -543,6 +652,7 @@ document.getElementById("bookingForm").addEventListener("submit", async e => {
       ? (lang === "bn" ? "এই নম্বর থেকে ওই দিনে ইতিমধ্যে ৩টি সিরিয়াল নেওয়া হয়েছে। অনুগ্রহ করে কল করুন।" : "This number already has 3 bookings that day. Please call us.")
       : (lang === "bn" ? "দুঃখিত, পাঠানো যায়নি। অনুগ্রহ করে কল করুন।" : "Sorry, that didn't go through. Please call us.");
     msg.style.display = "block";
+    msg.scrollIntoView({ behavior: "smooth", block: "center" });
   } finally {
     btn.disabled = false;
   }
@@ -559,8 +669,11 @@ document.getElementById("yr").textContent = new Date().getFullYear();
   });
 })();
 if (/[?&]review=1\b/.test(location.search)) document.body.classList.add("review");
-document.querySelector(".js-dept-count").textContent =
-  Object.keys(CONFIG.depts).filter(k => CONFIG.doctors.some(d => d.dept === k)).length;
+// Hide the mobile bottom bar while the booking form is on screen.
+if ("IntersectionObserver" in window) {
+  new IntersectionObserver(([e]) => document.getElementById("mbar").classList.toggle("away", e.isIntersecting), { threshold: 0.15 })
+    .observe(document.getElementById("bookingForm"));
+}
 applyLang();
 applyContacts();
 </script>

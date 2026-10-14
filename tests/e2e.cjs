@@ -58,7 +58,7 @@ async function bookOnline(p, name, phone, docIndex = 0) {
 
   // 1. Website booking gets serial 1
   const m1 = await bookOnline(site, "রহিম উদ্দিন", "01711000001");
-  ok(/সিরিয়াল নম্বর: 1/.test(m1), "website booking shows serial 1 — " + m1.slice(0, 70));
+  ok(/সিরিয়াল নম্বর:\s*(1|১)/.test(m1), "website booking shows serial 1 — " + m1.slice(0, 70));
 
   // 2. Non-staff account is refused
   await dash.goto(SITE + "/dashboard/index.html"); await dash.waitForTimeout(800);
@@ -77,7 +77,7 @@ async function bookOnline(p, name, phone, docIndex = 0) {
 
   // 4. Second website booking arrives live
   const m2 = await bookOnline(site, "করিম মিয়া", "01711000002");
-  ok(/সিরিয়াল নম্বর: 2/.test(m2), "second booking same doctor gets serial 2");
+  ok(/সিরিয়াল নম্বর:\s*(2|২)/.test(m2), "second booking same doctor gets serial 2");
   await dash.waitForSelector(".toast", { timeout: 15000 }).catch(() => {});
   ok(/নতুন সিরিয়াল/.test(await dash.locator(".toast").last().textContent().catch(() => "")), "realtime toast appeared");
   ok(await dash.locator("#list .row").count() === 2, "new booking added to list live");
