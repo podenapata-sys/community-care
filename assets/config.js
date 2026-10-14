@@ -7,6 +7,6 @@ window.APP_CONFIG = {
     apiKey: "AIzaSyB2Gw2bupLDmD8Jk1novRPC11x8yMVQ9IA",
     authDomain: "community-care-khulna.firebaseapp.com",
     projectId: "community-care-khulna",
-    appId: "1:358809903266:web:f8f13ce1ab5a775709f7fb"
+    appId: "1:358809903266:web:951a34d086dc812209f7fb"
   }
 };
