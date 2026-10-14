@@ -84,6 +84,14 @@ await check("staff cannot edit patient name", assertFails(updateDoc(doc(staffDb,
 await check("staff cannot delete", assertFails(deleteDoc(doc(staffDb, "bookings", first.id))));
 await check("staff cannot add themselves new staff", assertFails(setDoc(doc(staffDb, "staff/newguy"), { name: "x" })));
 
+// ---- reporter (read-only, used by the daily report script) ----
+await env.withSecurityRulesDisabled(async ctx => { await setDoc(doc(ctx.firestore(), "reporters/bot1"), { name: "Daily report" }); });
+const botDb = env.authenticatedContext("bot1", { email: "report@test" }).firestore();
+await check("reporter can list a day's bookings", assertSucceeds(getDocs(query(collection(botDb, "bookings"), where("bookingDate", "==", tomorrow)))));
+await check("reporter cannot change status", assertFails(updateDoc(doc(botDb, "bookings", first.id), { status: "cancelled", updatedAt: serverTimestamp() })));
+await check("reporter cannot add a manual booking", assertFails(book(botDb, { source: "manual", phone: "01777777777" })));
+await check("reporter cannot add themselves as staff", assertFails(setDoc(doc(botDb, "staff/bot1"), { name: "x" })));
+
 await env.cleanup();
 console.log(failed ? `\n${failed} FAILED` : "\nALL PASSED");
 process.exit(failed ? 1 : 0);

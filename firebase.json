@@ -17,7 +17,8 @@
       "**/*.md",
       "tests/**",
       "intake/**",
-      "quotation/**"
+      "quotation/**",
+      "apps-script/**"
     ],
     "cleanUrls": true,
     "headers": [

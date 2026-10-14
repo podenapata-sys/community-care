@@ -6,6 +6,8 @@ rules_version = '2';
 //     counter/limit transaction in assets/firebase-db.js. Cannot read any booking.
 //   Staff (signed in AND listed in /staff/{uid}): read bookings, add manual
 //     bookings, change a booking's status. Nobody can delete.
+//   Reporters (signed in AND listed in /reporters/{uid}): read bookings only —
+//     used by the daily report email script.
 //
 // Integrity without Cloud Functions: a booking is only accepted when, at the end
 // of the same transaction, counters/{date|doctor}.n equals its serialNo, and (for
@@ -18,6 +20,11 @@ service cloud.firestore {
 
     function isStaff() {
       return request.auth != null && exists(path('staff', request.auth.uid));
+    }
+
+    // Read-only accounts (e.g. the daily report script) — listed in /reporters/{uid}.
+    function isReader() {
+      return isStaff() || (request.auth != null && exists(path('reporters', request.auth.uid)));
     }
 
     function optString(b, k, max) {
@@ -57,7 +64,7 @@ service cloud.firestore {
       allow create: if validBooking(request.resource.data)
         && ((request.resource.data.source == 'online' && withinDailyLimit(request.resource.data))
             || (request.resource.data.source == 'manual' && isStaff()));
-      allow read: if isStaff();
+      allow read: if isReader();
       allow update: if isStaff()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
         && request.resource.data.status in ['new', 'confirmed', 'arrived', 'cancelled']
@@ -78,6 +85,11 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasOnly(['n']) && request.resource.data.n == 1;
       allow update: if request.resource.data.keys().hasOnly(['n'])
         && request.resource.data.n == resource.data.n + 1 && request.resource.data.n <= 3;
+    }
+
+    // Read-only report accounts — managed only from the Firebase console.
+    match /reporters/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
     }
 
     // Staff allowlist — managed only from the Firebase console.
