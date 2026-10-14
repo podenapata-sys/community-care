@@ -123,11 +123,28 @@ async function bookOnline(p, name, phone, docIndex = 0) {
   const walkRow = dash.locator("#list .row", { hasText: "হাঁটা রোগী" });
   ok(/ফোন নেই/.test(await walkRow.textContent()) && await walkRow.locator("[data-act=wa], a[href^=tel]").count() === 0, "walk-in shows 'ফোন নেই', no call/WhatsApp");
 
-  // 10. Reports tab loads from Firestore, fee tile counts both payments
+  // 10. Recycle bin: delete → appears in bin with who deleted it → restore
+  dash.once("dialog", d => d.accept());
+  await walkRow.locator("[data-act=del]").click(); await dash.waitForTimeout(1500);
+  ok(await dash.locator("#list .row").count() === 3, "deleted serial leaves the list");
+  await dash.click(".tab[data-tab=bin]");
+  await dash.waitForSelector("#binList .row", { timeout: 10000 });
+  const binText = await dash.textContent("#binList");
+  ok(/হাঁটা রোগী/.test(binText) && /reception@cc\.test/.test(binText) && /আর ৩০ দিন/.test(binText), "bin shows the serial, who deleted it, 30 days left");
+  await dash.reload(); await dash.waitForSelector("#appView:not(.hidden)", { timeout: 15000 });
+  await dash.click("#nextDay"); await dash.waitForSelector("#list .row", { timeout: 15000 });
+  ok(await dash.locator("#list .row").count() === 3, "deletion persisted after reload");
+  await dash.click(".tab[data-tab=bin]"); await dash.waitForSelector("#binList .row", { timeout: 10000 });
+  await dash.click("#binList [data-act=restore]"); await dash.waitForTimeout(1500);
+  ok(/বিন খালি/.test(await dash.textContent("#binList")), "restore empties the bin");
+  await dash.click(".tab[data-tab=serials]"); await dash.waitForTimeout(1500);
+  ok(await dash.locator("#list .row").count() === 4, "restored serial back in the list");
+
+  // 11. Reports tab loads from Firestore, fee tile counts both payments
   await dash.click(".tab[data-tab=reports]"); await dash.waitForTimeout(1500);
   ok(/৪/.test(await dash.textContent("#tiles")), "reports tiles render");
 
-  // 11. Anti-spam: 4th booking for one phone on one day is refused
+  // 12. Anti-spam: 4th booking for one phone on one day is refused
   await bookOnline(site, "স্প্যাম", "01799000009", 1); await bookOnline(site, "স্প্যাম", "01799000009", 2);
   await bookOnline(site, "স্প্যাম", "01799000009", 3);
   const m4 = await bookOnline(site, "স্প্যাম", "01799000009", 4);

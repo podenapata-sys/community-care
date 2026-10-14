@@ -1,7 +1,7 @@
 // Firestore security-rule tests. Run from tests/:
 //   npm install && npx firebase emulators:exec --only firestore --project demo-cc "node rules.test.mjs"
 import { initializeTestEnvironment, assertSucceeds, assertFails } from "@firebase/rules-unit-testing";
-import { doc, collection, runTransaction, serverTimestamp, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
+import { doc, collection, runTransaction, serverTimestamp, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, Timestamp } from "firebase/firestore";
 import { readFileSync } from "node:fs";
 
 const env = await initializeTestEnvironment({
@@ -19,7 +19,12 @@ const tomorrow = iso(new Date(Date.now() + 864e5));
 const pub = env.unauthenticatedContext().firestore();
 const staffDb = env.authenticatedContext("staff1", { email: "reception@test" }).firestore();
 const strangerDb = env.authenticatedContext("rando", { email: "rando@test" }).firestore();
-await env.withSecurityRulesDisabled(async ctx => { await setDoc(doc(ctx.firestore(), "staff/staff1"), { name: "Reception" }); });
+await env.withSecurityRulesDisabled(async ctx => {
+  const admin = ctx.firestore();
+  await setDoc(doc(admin, "staff/staff1"), { name: "Reception" });
+  await setDoc(doc(admin, "reporters/bot1"), { name: "Daily report" });
+});
+const botDbEarly = env.authenticatedContext("bot1", { email: "report@test" }).firestore();
 
 // Mirrors createBooking() in assets/firebase-db.js; `tamper` lets a test break one part.
 async function book(db, { date = tomorrow, doctor = "Dr. Test", phone = "01711111111", source = "online", tamper = {} } = {}) {
@@ -103,12 +108,33 @@ await check("staff cannot edit phone", assertFails(updateDoc(doc(staffDb, "booki
 await check("staff can look up bookings by phone", assertSucceeds(getDocs(query(collection(staffDb, "bookings"), where("phone", "==", "01711111111")))));
 await check("public cannot look up bookings by phone", assertFails(getDocs(query(collection(pub, "bookings"), where("phone", "==", "01711111111")))));
 
+// ---- recycle bin (soft delete, 30 days) ----
+const binNow = { deletedAt: serverTimestamp(), deletedBy: "reception@test", updatedAt: serverTimestamp() };
+await check("public booking cannot arrive pre-deleted", assertFails(book(pub, { phone: "01788888885", tamper: { fields: { deletedAt: null } } })));
+await check("staff can move a booking to the bin", assertSucceeds(updateDoc(doc(staffDb, "bookings", second.id), binNow)));
+await check("staff can list the bin", assertSucceeds(getDocs(query(collection(staffDb, "bookings"), where("deletedAt", ">", Timestamp.fromMillis(Date.now() - 30 * 864e5))))));
+await check("staff cannot permanently delete a booking deleted today", assertFails(deleteDoc(doc(staffDb, "bookings", second.id))));
+await check("staff can restore from the bin", assertSucceeds(updateDoc(doc(staffDb, "bookings", second.id), { deletedAt: null, deletedBy: null, updatedAt: serverTimestamp() })));
+await check("bin entry cannot name someone else", assertFails(updateDoc(doc(staffDb, "bookings", other.id), { ...binNow, deletedBy: "owner@test" })));
+await check("bin entry cannot be backdated", assertFails(updateDoc(doc(staffDb, "bookings", other.id), { ...binNow, deletedAt: Timestamp.fromDate(new Date("2020-01-01")) })));
+await check("bin entry needs who deleted it", assertFails(updateDoc(doc(staffDb, "bookings", other.id), { deletedAt: serverTimestamp(), updatedAt: serverTimestamp() })));
+await check("reporter cannot move a booking to the bin", assertFails(updateDoc(doc(botDbEarly, "bookings", other.id), { ...binNow, deletedBy: "report@test" })));
+await check("non-staff cannot move a booking to the bin", assertFails(updateDoc(doc(strangerDb, "bookings", other.id), { ...binNow, deletedBy: "rando@test" })));
+const old = Timestamp.fromMillis(Date.now() - 31 * 864e5);
+await env.withSecurityRulesDisabled(async ctx => {
+  const admin = ctx.firestore();
+  for (const id of ["expired1", "expired2"]) await setDoc(doc(admin, "bookings", id), { serialNo: 1, bookingDate: tomorrow, doctor: "Dr. Old",
+    patientName: "Old", phone: null, status: "new", source: "manual", deletedAt: old, deletedBy: "reception@test", createdAt: old, updatedAt: old });
+});
+await check("public cannot purge an expired bin entry", assertFails(deleteDoc(doc(pub, "bookings", "expired2"))));
+await check("reporter cannot purge an expired bin entry", assertFails(deleteDoc(doc(botDbEarly, "bookings", "expired2"))));
+await check("staff can purge after 30 days in the bin", assertSucceeds(deleteDoc(doc(staffDb, "bookings", "expired1"))));
+
 await check("staff cannot delete", assertFails(deleteDoc(doc(staffDb, "bookings", first.id))));
 await check("staff cannot add themselves new staff", assertFails(setDoc(doc(staffDb, "staff/newguy"), { name: "x" })));
 
 // ---- reporter (read-only, used by the daily report script) ----
-await env.withSecurityRulesDisabled(async ctx => { await setDoc(doc(ctx.firestore(), "reporters/bot1"), { name: "Daily report" }); });
-const botDb = env.authenticatedContext("bot1", { email: "report@test" }).firestore();
+const botDb = botDbEarly;
 await check("reporter can list a day's bookings", assertSucceeds(getDocs(query(collection(botDb, "bookings"), where("bookingDate", "==", tomorrow)))));
 await check("reporter cannot change status", assertFails(updateDoc(doc(botDb, "bookings", first.id), { status: "cancelled", updatedAt: serverTimestamp() })));
 await check("reporter cannot add a manual booking", assertFails(book(botDb, { source: "manual", phone: "01777777777" })));

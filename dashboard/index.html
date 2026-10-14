@@ -109,7 +109,8 @@
     .tabs { margin-left: 0; } .bar img { height: 30px; } .live span { display: none; }
     .toolbar .right { margin-left: 0; width: 100%; } .toolbar .right .btn { flex: 1; }
   }
-  @media (max-width: 480px) { .bar { gap: 8px; } .tab { padding: 8px 10px; } .badge-demo { display: none; } }
+  .tab { white-space: nowrap; }
+  @media (max-width: 480px) { .bar { gap: 6px; padding: 0 10px; } .tab { padding: 8px 8px; } .tab .tl { display: none; } .badge-demo { display: none; } .bar img { height: 26px; } #soundBtn, #logoutBtn { padding: 6px 8px; } }
 
   /* ---------- reports ---------- */
   .tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 14px; }
@@ -204,6 +205,7 @@
       <nav class="tabs">
         <button class="tab on" data-tab="serials">সিরিয়াল</button>
         <button class="tab" data-tab="reports">রিপোর্ট</button>
+        <button class="tab" data-tab="bin" title="রিসাইকেল বিন" aria-label="রিসাইকেল বিন">🗑<span class="tl"> বিন</span></button>
       </nav>
       <div class="sp"></div>
       <span class="badge-demo hidden" id="demoBadge">ডেমো ডেটা</span>
@@ -236,6 +238,13 @@
     </section>
 
     <!-- ---------- REPORTS ---------- -->
+    <section id="tab-bin" class="hidden">
+      <div class="group">
+        <h3>রিসাইকেল বিন <span>মুছে ফেলা সিরিয়াল ৩০ দিন এখানে থাকে, তারপর স্থায়ীভাবে মুছে যায়</span></h3>
+        <div id="binList"></div>
+      </div>
+    </section>
+
     <section id="tab-reports" class="hidden">
       <div class="tiles" id="tiles"></div>
       <div class="panel">
@@ -329,6 +338,7 @@ const docFee = name => { const f = String((CLINIC.doctors.find(d => d.name === n
 const taka = n => "৳" + bn(n);
 
 /* ================================================================ data stores */
+const BIN_DAYS = 30;   // deleted serials stay in the recycle bin this long
 // Both stores expose: init(), signIn(), signOut(), listDay(date), listRange(from,to),
 // add(row), update(id, patch), onInsert(cb)
 const DemoStore = (() => {
@@ -384,10 +394,14 @@ const DemoStore = (() => {
     async signIn() { return true; },
     async session() { return false; },
     async signOut() {},
-    async listDay(date) { return rows.filter(r => r.booking_date === date); },
-    async listRange(from, to) { return rows.filter(r => r.booking_date >= from && r.booking_date <= to); },
+    async listDay(date) { return rows.filter(r => !r.deleted_at && r.booking_date === date); },
+    async listRange(from, to) { return rows.filter(r => !r.deleted_at && r.booking_date >= from && r.booking_date <= to); },
+    async softDelete(id) { return this.update(id, { deleted_at: new Date().toISOString(), deleted_by: "demo@reception" }); },
+    async restore(id) { return this.update(id, { deleted_at: null, deleted_by: null }); },
+    async listTrash() { const cut = Date.now() - BIN_DAYS * 864e5; return rows.filter(r => r.deleted_at && Date.parse(r.deleted_at) > cut).sort((a, b) => b.deleted_at.localeCompare(a.deleted_at)); },
+    async purgeExpired() { const cut = Date.now() - BIN_DAYS * 864e5, n = rows.length; rows = rows.filter(r => !r.deleted_at || Date.parse(r.deleted_at) > cut); save(); return n - rows.length; },
     async findByPhone(p) {
-      return rows.filter(r => r.phone === p)
+      return rows.filter(r => !r.deleted_at && r.phone === p)
         .sort((a, b) => b.booking_date.localeCompare(a.booking_date) || b.created_at.localeCompare(a.created_at)).slice(0, 10);
     },
     async add(r) {
@@ -423,6 +437,10 @@ const FireStore = (() => {
     findByPhone: phone => api.findByPhone(phone),
     update: (id, patch) => api.updateStatus(id, patch.status),
     updatePayment: (id, fee, paid) => api.updatePayment(id, fee, paid),
+    softDelete: id => api.softDelete(id),
+    restore: id => api.restore(id),
+    listTrash: () => api.listTrash(),
+    purgeExpired: () => api.purgeExpired(),
     onInsert(cb) { unsub = api.onNewBookings(cb, setLive); return true; }
   };
 })();
@@ -541,6 +559,7 @@ function renderSerials() {
           ${r.status === "new" || r.status === "confirmed" ? `<button class="btn btn-ghost btn-sm" data-act="arrived">★ এসেছেন</button>` : ""}
           ${r.status !== "cancelled" && !r.paid ? `<button class="btn btn-ghost btn-sm" data-act="pay">💳 ফি আদায়</button>` : ""}
           ${r.status !== "cancelled" ? `<button class="btn btn-ghost btn-sm" data-act="cancelled">✕ বাতিল</button>` : `<button class="btn btn-ghost btn-sm" data-act="new">↺ ফিরিয়ে আনুন</button>`}
+          <button class="btn btn-ghost btn-sm" data-act="del" title="মুছুন (৩০ দিন বিনে থাকবে)" aria-label="মুছুন">🗑</button>
         </div>
       </div>`).join("")}
     </div>`).join("");
@@ -567,7 +586,44 @@ $("#list").addEventListener("click", e => {
   const id = btn.closest(".row").dataset.id, act = btn.dataset.act;
   if (act === "wa") { const r = state.rows.find(x => x.id === id); if (r && r.status === "new") setStatus(id, "confirmed"); return; }
   if (act === "pay" || act === "unpay") { setPayment(id, act === "pay"); return; }
+  if (act === "del") { deleteRow(id); return; }
   setStatus(id, act);
+});
+
+async function deleteRow(id) {
+  const r = state.rows.find(x => x.id === id); if (!r) return;
+  if (!confirm(`${r.patient_name} (সিরিয়াল ${bn(r.serial_no)}) মুছবেন?\n৩০ দিন রিসাইকেল বিনে থাকবে, এর মধ্যে ফিরিয়ে আনা যাবে।`)) return;
+  const i = state.rows.indexOf(r);
+  state.rows.splice(i, 1); renderSerials();
+  try { await store.softDelete(id); toast("🗑 বিনে সরানো হয়েছে", `${r.patient_name} — ৩০ দিনের মধ্যে "🗑 বিন" থেকে ফিরিয়ে আনা যাবে`); }
+  catch (e) { state.rows.splice(i, 0, r); renderSerials(); toast("সমস্যা", "মোছা যায়নি: " + e.message); }
+}
+
+/* ---- recycle bin ---- */
+async function renderBin() {
+  const el = $("#binList");
+  let rows = [];
+  try { await store.purgeExpired(); rows = await store.listTrash(); }
+  catch (e) { el.innerHTML = `<div class="empty">বিন লোড করা যায়নি: ${esc(e.message)}</div>`; return; }
+  if (!rows.length) { el.innerHTML = `<div class="empty" style="border:0">বিন খালি।</div>`; return; }
+  el.innerHTML = rows.map(r => {
+    const left = Math.max(1, Math.ceil(BIN_DAYS - (Date.now() - Date.parse(r.deleted_at)) / 864e5));
+    return `
+    <div class="row" data-id="${esc(r.id)}">
+      <div class="serial num">${bn(r.serial_no)}</div>
+      <div class="who"><b>${esc(r.patient_name)}</b>${r.phone ? `<small>📞 ${esc(fmtPhone(r.phone))}</small>` : `<span class="nophone">ফোন নেই</span>`}</div>
+      <div class="meta">${esc(r.doctor)}<br><small>${dateShort(r.booking_date)} · মুছেছেন ${esc(r.deleted_by || "—")}, ${dateShort(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" }).format(new Date(r.deleted_at)))} ${timeBn(r.deleted_at)}</small></div>
+      <div class="stcell"><span class="status st-cancelled">আর ${bn(left)} দিন</span></div>
+      <div class="acts"><button class="btn btn-ghost btn-sm" data-act="restore">↺ ফিরিয়ে আনুন</button></div>
+    </div>`;
+  }).join("");
+}
+$("#binList").addEventListener("click", async e => {
+  const btn = e.target.closest("[data-act=restore]"); if (!btn) return;
+  const row = btn.closest(".row"); btn.disabled = true;
+  try { await store.restore(row.dataset.id); row.remove(); toast("↺ ফিরিয়ে আনা হয়েছে", "সিরিয়ালটি আবার তালিকায় দেখা যাবে।");
+    if (!$("#binList .row")) $("#binList").innerHTML = `<div class="empty" style="border:0">বিন খালি।</div>`; }
+  catch (err) { btn.disabled = false; toast("সমস্যা", "ফিরিয়ে আনা যায়নি: " + err.message); }
 });
 
 async function setPayment(id, paid) {
@@ -803,7 +859,10 @@ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () =>
   document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === t));
   $("#tab-serials").classList.toggle("hidden", state.tab !== "serials");
   $("#tab-reports").classList.toggle("hidden", state.tab !== "reports");
-  if (state.tab === "reports") renderReports(); else { state.unseen = 0; updateTitle(); loadDay(); }
+  $("#tab-bin").classList.toggle("hidden", state.tab !== "bin");
+  if (state.tab === "reports") renderReports();
+  else if (state.tab === "bin") renderBin();
+  else { state.unseen = 0; updateTitle(); loadDay(); }
 }));
 function paintSound() { $("#soundBtn").textContent = state.sound ? "🔔" : "🔕"; }
 $("#soundBtn").addEventListener("click", () => {

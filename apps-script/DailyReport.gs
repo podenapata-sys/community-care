@@ -92,7 +92,10 @@ function queryBookings_(cfg, token, from, to) {
   });
   var body = JSON.parse(res.getContentText());
   if (res.getResponseCode() !== 200) throw new Error('Firestore query failed: ' + res.getContentText().slice(0, 300));
-  return body.filter(function (e) { return e.document; }).map(function (e) {
+  return body.filter(function (e) {
+    // Skip bookings that staff moved to the recycle bin.
+    return e.document && !(e.document.fields && e.document.fields.deletedAt && e.document.fields.deletedAt.timestampValue);
+  }).map(function (e) {
     var f = e.document.fields || {};
     var str = function (k) { return f[k] && (f[k].stringValue != null ? f[k].stringValue : null); };
     var fee = f.fee && f.fee.integerValue != null ? +f.fee.integerValue : (f.fee && f.fee.doubleValue != null ? +f.fee.doubleValue : null);

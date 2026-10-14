@@ -5,7 +5,8 @@ rules_version = '2';
 //   Public (website visitors): can create an online booking through the
 //     counter/limit transaction in assets/firebase-db.js. Cannot read any booking.
 //   Staff (signed in AND listed in /staff/{uid}): read bookings, add manual
-//     bookings, change a booking's status. Nobody can delete.
+//     bookings, change status / fee, move a booking to the recycle bin and back.
+//     Permanent delete only after 30 days in the bin.
 //   Reporters (signed in AND listed in /reporters/{uid}): read bookings only —
 //     used by the daily report email script.
 //
@@ -40,7 +41,8 @@ service cloud.firestore {
 
     function validBooking(b) {
       return b.keys().hasOnly(['serialNo', 'bookingDate', 'doctor', 'dept', 'patientName', 'phone',
-                               'age', 'note', 'status', 'source', 'createdAt', 'updatedAt', 'fee', 'paid'])
+                               'age', 'note', 'status', 'source', 'createdAt', 'updatedAt', 'fee', 'paid',
+                               'deletedAt', 'deletedBy'])
         && b.keys().hasAll(['serialNo', 'bookingDate', 'doctor', 'patientName',
                             'status', 'source', 'createdAt', 'updatedAt'])
         && b.serialNo is int && b.serialNo >= 1
@@ -53,6 +55,7 @@ service cloud.firestore {
         && optString(b, 'dept', 40)
         && optString(b, 'note', 500)
         && b.status == 'new'
+        && !('deletedAt' in b) && !('deletedBy' in b)
         && b.createdAt == request.time && b.updatedAt == request.time
         && getAfter(path('counters', b.bookingDate + '|' + b.doctor)).data.n == b.serialNo;
     }
@@ -67,6 +70,16 @@ service cloud.firestore {
         && (!('paid' in b) || b.paid == null || b.paid is bool);
     }
 
+    // Recycle bin: a soft delete stamps the server time and the staff member's own
+    // email; a restore clears both. Nothing else about the delete can be faked.
+    function binOk(before, after) {
+      return (after.get('deletedAt', null) == before.get('deletedAt', null)
+              && after.get('deletedBy', null) == before.get('deletedBy', null))
+        || (after.get('deletedAt', null) == request.time
+            && after.get('deletedBy', null) == request.auth.token.email)
+        || (after.get('deletedAt', null) == null && after.get('deletedBy', null) == null);
+    }
+
     function withinDailyLimit(b) {
       return getAfter(path('limits', b.bookingDate + '|' + b.phone)).data.n <= 3;
     }
@@ -79,11 +92,15 @@ service cloud.firestore {
             || (request.resource.data.source == 'manual' && isStaff()));
       allow read: if isReader();
       allow update: if isStaff()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'fee', 'paid'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'updatedAt', 'fee', 'paid', 'deletedAt', 'deletedBy'])
+        && binOk(resource.data, request.resource.data)
         && request.resource.data.status in ['new', 'confirmed', 'arrived', 'cancelled']
         && feeOk(request.resource.data)
         && request.resource.data.updatedAt == request.time;
-      allow delete: if false;
+      // Permanent removal only after 30 days in the recycle bin.
+      allow delete: if isStaff() && resource.data.get('deletedAt', null) != null
+        && resource.data.deletedAt < request.time - duration.value(30, 'd');
     }
 
     // Per doctor per day serial counter. Readable by id only (no listing).

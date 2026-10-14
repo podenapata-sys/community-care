@@ -36,8 +36,9 @@ function loadScript(props, sent) {
 }
 
 const dhaka = off => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" }).format(new Date(Date.now() + off * 864e5));
-function seedBooking(id, date, doctor, status, source, fee, paid) {
+function seedBooking(id, date, doctor, status, source, fee, paid, deleted) {
   const extra = {};
+  if (deleted) { extra.deletedAt = { timestampValue: new Date().toISOString() }; extra.deletedBy = { stringValue: "reception@cc.test" }; }
   if (fee != null) extra.fee = { integerValue: String(fee) };
   if (paid != null) extra.paid = { booleanValue: paid };
   const r = http(`${FS}/v1/projects/${PROJECT}/databases/(default)/documents/bookings/${id}`, {
@@ -63,6 +64,7 @@ seedBooking("y3", y, "Dr. B", "new", "online");
 seedBooking("y4", y, "Dr. B", "cancelled", "online", 800, true);   // cancelled: not counted as revenue
 seedBooking("y5", y, "Dr. A", "confirmed", "online", 800, false);
 seedBooking("old", dhaka(-2), "Dr. A", "arrived", "online");
+seedBooking("ybin", y, "Dr. A", "arrived", "manual", 800, true, true);   // in the recycle bin: ignored everywhere
 seedBooking("t1", t, "Dr. A", "new", "online");
 seedBooking("t2", t, "Dr. C", "cancelled", "online");
 seedBooking("t3", t3, "Dr. C", "confirmed", "online");
@@ -83,6 +85,7 @@ ok(r.todayBooked === 1 && r.weekBooked === 2, `upcoming excludes cancelled and >
 ok(/৪ টি সিরিয়াল/.test(sent[0].subject), "subject in Bangla with count — " + sent[0].subject);
 ok(/ড্যাশবোর্ড খুলুন/.test(sent[0].htmlBody) && /Dr\. A/.test(sent[0].htmlBody), "html has doctor table and dashboard link");
 ok(!/01711111111/.test(sent[0].htmlBody), "email contains no patient phone numbers");
+ok(!r.doctors.some(d => d.n > 3), "binned booking not counted for its doctor");
 ok(r.feeCollected === 1300 && r.paidCount === 2 && r.unpaidCount === 1, `fee totals exclude cancelled (৳${r.feeCollected}, ${r.paidCount} paid, ${r.unpaidCount} due)`);
 ok(/ফি আদায়: <b>৳১৩০০<\/b> \(২ জন\) · বাকি: <b>১<\/b> জন/.test(sent[0].htmlBody), "html shows fee collected and due count");
 fs.writeFileSync(path.join(process.env.OUT_DIR || __dirname, "report-sample.html"), sent[0].htmlBody);

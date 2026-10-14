@@ -32,9 +32,13 @@ function toRow(snap) {
   return {
     id: snap.id, serial_no: d.serialNo, booking_date: d.bookingDate, doctor: d.doctor, dept: d.dept ?? null,
     patient_name: d.patientName, phone: d.phone ?? null, age: d.age ?? null, note: d.note ?? null,
-    fee: d.fee ?? null, paid: !!d.paid, status: d.status, source: d.source, created_at: iso(d.createdAt), updated_at: iso(d.updatedAt)
+    fee: d.fee ?? null, paid: !!d.paid, status: d.status, source: d.source, created_at: iso(d.createdAt), updated_at: iso(d.updatedAt),
+    deleted_at: d.deletedAt ? iso(d.deletedAt) : null, deleted_by: d.deletedBy ?? null
   };
 }
+const live = rows => rows.filter(r => !r.deleted_at);   // hide rows that are in the recycle bin
+const BIN_DAYS = 30;
+const binCutoff = () => fs.Timestamp.fromMillis(Date.now() - BIN_DAYS * 864e5);
 
 /* Creates a booking and returns { id, serial }.
    One transaction bumps the doctor/day serial counter, (for online bookings) the
@@ -97,12 +101,12 @@ export async function session() {
 
 export async function listDay(date) {
   const q = fs.query(fs.collection(db, "bookings"), fs.where("bookingDate", "==", date));
-  return (await fs.getDocs(q)).docs.map(toRow);
+  return live((await fs.getDocs(q)).docs.map(toRow));
 }
 
 export async function listRange(from, to) {
   const q = fs.query(fs.collection(db, "bookings"), fs.where("bookingDate", ">=", from), fs.where("bookingDate", "<=", to));
-  return (await fs.getDocs(q)).docs.map(toRow);
+  return live((await fs.getDocs(q)).docs.map(toRow));
 }
 
 export async function addManual(row) {
@@ -115,7 +119,7 @@ export async function addManual(row) {
 // Earlier bookings for a phone number (newest first) — for returning-patient auto-fill.
 export async function findByPhone(phone) {
   const q = fs.query(fs.collection(db, "bookings"), fs.where("phone", "==", phone));
-  return (await fs.getDocs(q)).docs.map(toRow)
+  return live((await fs.getDocs(q)).docs.map(toRow))
     .sort((a, b) => b.booking_date.localeCompare(a.booking_date) || b.created_at.localeCompare(a.created_at))
     .slice(0, 10);
 }
@@ -128,6 +132,30 @@ export async function updatePayment(id, fee, paid) {
 export async function updateStatus(id, status) {
   await fs.updateDoc(fs.doc(db, "bookings", id), { status, updatedAt: fs.serverTimestamp() });
   return { status };
+}
+
+/* ---- recycle bin: deleted bookings stay 30 days, then purgeExpired() removes them ---- */
+export async function softDelete(id) {
+  const email = auth && auth.currentUser && auth.currentUser.email;
+  await fs.updateDoc(fs.doc(db, "bookings", id), { deletedAt: fs.serverTimestamp(), deletedBy: email, updatedAt: fs.serverTimestamp() });
+}
+
+export async function restore(id) {
+  await fs.updateDoc(fs.doc(db, "bookings", id), { deletedAt: null, deletedBy: null, updatedAt: fs.serverTimestamp() });
+}
+
+export async function listTrash() {
+  const q = fs.query(fs.collection(db, "bookings"), fs.where("deletedAt", ">", binCutoff()));
+  return (await fs.getDocs(q)).docs.map(toRow).sort((a, b) => b.deleted_at.localeCompare(a.deleted_at));
+}
+
+// Permanently removes bookings that have been in the bin longer than 30 days.
+export async function purgeExpired() {
+  const q = fs.query(fs.collection(db, "bookings"), fs.where("deletedAt", "<=", binCutoff()));
+  const snap = await fs.getDocs(q);
+  // allSettled: if this computer's clock is a little off, the rules refuse a borderline one; it goes next time.
+  const res = await Promise.allSettled(snap.docs.map(d => fs.deleteDoc(d.ref)));
+  return res.filter(r => r.status === "fulfilled").length;
 }
 
 // Calls cb(row) for every booking created after this moment; onState(true/false) for the live dot.
