@@ -45,7 +45,7 @@
   .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 12px; }
   .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .brand img { height: 46px; width: auto; display: block; }
-  .foot-logo { height: 36px; width: auto; display: block; margin-bottom: 8px; }
+  .foot-logo { height: 36px; width: auto; display: block; margin-bottom: 8px; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
   .nav-links { display: flex; gap: 22px; font-weight: 500; color: var(--muted); }
   .nav-links a:hover { color: var(--indigo); }
   .nav-right { display: flex; gap: 8px; align-items: center; }
@@ -548,6 +548,15 @@ document.getElementById("bookingForm").addEventListener("submit", async e => {
 });
 
 document.getElementById("yr").textContent = new Date().getFullYear();
+// Staff shortcut: three quick taps on the footer logo open the dashboard.
+(() => {
+  let taps = 0, t;
+  document.querySelector(".foot-logo").addEventListener("click", () => {
+    clearTimeout(t);
+    if (++taps >= 3) { taps = 0; location.href = "dashboard/"; return; }
+    t = setTimeout(() => { taps = 0; }, 700);
+  });
+})();
 if (/[?&]review=1\b/.test(location.search)) document.body.classList.add("review");
 document.querySelector(".js-dept-count").textContent =
   Object.keys(CONFIG.depts).filter(k => CONFIG.doctors.some(d => d.dept === k)).length;
