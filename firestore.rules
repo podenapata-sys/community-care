@@ -40,14 +40,15 @@ service cloud.firestore {
 
     function validBooking(b) {
       return b.keys().hasOnly(['serialNo', 'bookingDate', 'doctor', 'dept', 'patientName', 'phone',
-                               'age', 'note', 'status', 'source', 'createdAt', 'updatedAt'])
-        && b.keys().hasAll(['serialNo', 'bookingDate', 'doctor', 'patientName', 'phone',
+                               'age', 'note', 'status', 'source', 'createdAt', 'updatedAt', 'fee', 'paid'])
+        && b.keys().hasAll(['serialNo', 'bookingDate', 'doctor', 'patientName',
                             'status', 'source', 'createdAt', 'updatedAt'])
         && b.serialNo is int && b.serialNo >= 1
         && dateOk(b.bookingDate)
         && b.doctor is string && b.doctor.size() >= 2 && b.doctor.size() <= 120 && !b.doctor.matches('.*[/|].*')
         && b.patientName is string && b.patientName.size() >= 2 && b.patientName.size() <= 80
-        && b.phone is string && b.phone.matches('^01[3-9][0-9]{8}$')
+        && (validPhone(b) || (b.source == 'manual' && (!('phone' in b) || b.phone == null)))
+        && feeOk(b)
         && (!('age' in b) || b.age == null || (b.age is int && b.age >= 0 && b.age <= 120))
         && optString(b, 'dept', 40)
         && optString(b, 'note', 500)
@@ -56,18 +57,31 @@ service cloud.firestore {
         && getAfter(path('counters', b.bookingDate + '|' + b.doctor)).data.n == b.serialNo;
     }
 
+    function validPhone(b) {
+      return 'phone' in b && b.phone is string && b.phone.matches('^01[3-9][0-9]{8}$');
+    }
+
+    // Visit fee (BDT) and paid flag: optional, only staff may set them.
+    function feeOk(b) {
+      return (!('fee' in b) || b.fee == null || (b.fee is int && b.fee >= 0 && b.fee <= 100000))
+        && (!('paid' in b) || b.paid == null || b.paid is bool);
+    }
+
     function withinDailyLimit(b) {
       return getAfter(path('limits', b.bookingDate + '|' + b.phone)).data.n <= 3;
     }
 
     match /bookings/{id} {
       allow create: if validBooking(request.resource.data)
-        && ((request.resource.data.source == 'online' && withinDailyLimit(request.resource.data))
+        && ((request.resource.data.source == 'online' && validPhone(request.resource.data)
+             && !('fee' in request.resource.data) && !('paid' in request.resource.data)
+             && withinDailyLimit(request.resource.data))
             || (request.resource.data.source == 'manual' && isStaff()));
       allow read: if isReader();
       allow update: if isStaff()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'fee', 'paid'])
         && request.resource.data.status in ['new', 'confirmed', 'arrived', 'cancelled']
+        && feeOk(request.resource.data)
         && request.resource.data.updatedAt == request.time;
       allow delete: if false;
     }

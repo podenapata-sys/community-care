@@ -94,6 +94,10 @@
   .st-confirmed { background: var(--s-conf-bg); color: var(--s-conf); }
   .st-arrived { background: var(--s-arr-bg); color: var(--s-arr); }
   .st-cancelled { background: var(--s-can-bg); color: var(--s-can); }
+  .nophone { font-size: 12px; font-weight: 600; color: var(--muted); background: var(--bg); padding: 1px 8px; border-radius: 999px; }
+  .fee { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-top: 3px; border: 0; }
+  .fee.due { background: #fff1d6; color: #8a5300; }
+  .fee.paid { background: var(--s-conf-bg); color: var(--s-conf); }
   .acts { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
   .empty { text-align: center; padding: 50px 16px; color: var(--muted); background: var(--card); border: 1px dashed var(--line); border-radius: var(--radius); }
 
@@ -108,7 +112,7 @@
   @media (max-width: 480px) { .bar { gap: 8px; } .tab { padding: 8px 10px; } .badge-demo { display: none; } }
 
   /* ---------- reports ---------- */
-  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  .tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 14px; }
   .tile { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
   .tile .lbl { font-size: 13px; color: var(--muted); }
   .tile .val { font-size: 28px; font-weight: 700; color: var(--ink); line-height: 1.2; }
@@ -133,7 +137,7 @@
   details.tbl summary { cursor: pointer; color: var(--indigo); }
   details.tbl table { border-collapse: collapse; margin-top: 8px; width: 100%; }
   details.tbl td, details.tbl th { border-bottom: 1px solid var(--line); padding: 4px 8px; text-align: left; }
-  @media (max-width: 900px) { .tiles { grid-template-columns: 1fr 1fr; } .panels2 { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .tiles { grid-template-columns: 1fr 1fr; } .tile:last-child { grid-column: span 2; } .panels2 { grid-template-columns: 1fr; } }
 
   /* ---------- modal & toast ---------- */
   .modal { position: fixed; inset: 0; background: rgba(13,36,112,.45); display: grid; place-items: center; padding: 16px; z-index: 50; }
@@ -144,6 +148,14 @@
   .modal .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .modal .foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
   .modal .err { color: var(--s-can); font-size: 14px; margin-top: 8px; }
+  .modal .check { display: flex; align-items: center; gap: 8px; font-weight: 600; margin: 0; padding: 10px 0 0; }
+  .modal .check input { width: 18px; height: 18px; }
+  .prev { background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-size: 13px; }
+  .prev b { color: var(--navy); }
+  .prev .names { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .prev .names button { border: 1px solid var(--indigo); background: var(--card); color: var(--indigo); border-radius: 999px; padding: 3px 10px; font-size: 13px; font-weight: 600; }
+  .prev ul { list-style: none; color: var(--ink2); }
+  .prev li { padding: 2px 0; }
   .toasts { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 60; max-width: calc(100vw - 32px); }
   .toast { background: var(--navy); color: #fff; border-radius: 12px; padding: 12px 16px; box-shadow: 0 12px 30px rgba(0,0,0,.25); min-width: 260px; animation: tin .3s ease-out; }
   .toast b { color: var(--cyan); display: block; font-size: 13px; }
@@ -255,15 +267,20 @@
 <div class="modal hidden" id="addModal">
   <form id="addForm">
     <h2>নতুন সিরিয়াল যোগ করুন</h2>
-    <label for="aName">রোগীর নাম *</label>
-    <input id="aName" required minlength="2" maxlength="80">
+    <label for="aPhone">মোবাইল <small style="font-weight:500;color:var(--muted)">(না থাকলে খালি রাখুন)</small></label>
+    <input id="aPhone" type="tel" inputmode="tel" pattern="01[3-9][0-9]{8}" maxlength="11" placeholder="01XXXXXXXXX" autocomplete="off">
+    <div class="prev hidden" id="prevBox"></div>
     <div class="two">
-      <div><label for="aPhone">মোবাইল *</label><input id="aPhone" type="tel" inputmode="tel" pattern="01[3-9][0-9]{8}" placeholder="01XXXXXXXXX" required></div>
+      <div><label for="aName">রোগীর নাম *</label><input id="aName" required minlength="2" maxlength="80"></div>
       <div><label for="aAge">বয়স</label><input id="aAge" type="number" min="0" max="120"></div>
     </div>
     <div class="two">
       <div><label for="aDate">তারিখ *</label><input id="aDate" type="date" required></div>
       <div><label for="aDoctor">ডাক্তার / সেবা *</label><select id="aDoctor" required></select></div>
+    </div>
+    <div class="two">
+      <div><label for="aFee">ভিজিট ফি (৳)</label><input id="aFee" type="number" min="0" max="100000" step="1" inputmode="numeric"></div>
+      <div><label class="check"><input id="aPaid" type="checkbox"> ফি আদায় হয়েছে</label></div>
     </div>
     <label for="aNote">নোট</label>
     <textarea id="aNote" rows="2" maxlength="500"></textarea>
@@ -307,12 +324,15 @@ const STATUS = {
 const STATUS_COLOR = { new: "var(--s-new)", confirmed: "var(--s-conf)", arrived: "var(--s-arr)", cancelled: "var(--s-can)" };
 const deptOf = name => (CLINIC.doctors.find(d => d.name === name) || {}).dept || null;
 const docLabel = name => { const d = CLINIC.doctors.find(x => x.name === name); return d ? d.sbn : ""; };
+// Doctor's visit fee when clinic-data has a single number ("800"); null for ranges ("500–1500") and services.
+const docFee = name => { const f = String((CLINIC.doctors.find(d => d.name === name) || {}).fee || ""); return /^\d+$/.test(f) ? +f : null; };
+const taka = n => "৳" + bn(n);
 
 /* ================================================================ data stores */
 // Both stores expose: init(), signIn(), signOut(), listDay(date), listRange(from,to),
 // add(row), update(id, patch), onInsert(cb)
 const DemoStore = (() => {
-  const KEY = "cc-demo-bookings-v2";
+  const KEY = "cc-demo-bookings-v3";
   let rows = [], listeners = [];
   const NAMES = ["মোঃ রফিকুল ইসলাম", "সুমাইয়া আক্তার", "আব্দুল করিম", "নাসরিন সুলতানা", "মোঃ জাহিদ হাসান", "শিরিন আক্তার",
     "তানভীর আহমেদ", "রোকসানা বেগম", "মোঃ সাইফুল ইসলাম", "ফারজানা ইয়াসমিন", "আমিনুল হক", "মাহমুদা খাতুন",
@@ -322,6 +342,8 @@ const DemoStore = (() => {
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const pick = a => a[Math.floor(rnd() * a.length)];
   const phone = () => "01" + pick(["3", "7", "8", "9", "5", "6"]) + String(Math.floor(rnd() * 1e8)).padStart(8, "0");
+  // Regular patients who come back — so the returning-patient auto-fill has something to show.
+  const REGULARS = Array.from({ length: 12 }, (_, i) => ({ patient_name: NAMES[i * 2], phone: "017110000" + (i + 10), age: 20 + i * 4 }));
   function seedData() {
     const today = dhakaToday(), out = [];
     const popular = CLINIC.doctors.map((d, i) => ({ d, w: 1 + ((i * 7) % 5) }));
@@ -340,9 +362,13 @@ const DemoStore = (() => {
                      : isToday ? (x < .35 ? "new" : x < .7 ? "confirmed" : x < .92 ? "arrived" : "cancelled")
                      : (x < .6 ? "new" : x < .95 ? "confirmed" : "cancelled");
         const created = new Date(new Date(date + "T03:00:00Z").getTime() - rnd() * 2 * 864e5).toISOString();
+        const source = rnd() < .64 ? "online" : "manual", y = rnd();
+        const who = y < .25 ? pick(REGULARS)
+          : { patient_name: pick(NAMES), phone: source === "manual" && y > .93 ? null : phone(), age: 5 + Math.floor(rnd() * 70) };
+        const fee = status === "arrived" ? docFee(doc.name) : null;
         out.push({ id: "d" + date + "-" + k, serial_no: serials[doc.name], booking_date: date, doctor: doc.name, dept: doc.dept,
-          patient_name: pick(NAMES), phone: phone(), age: 5 + Math.floor(rnd() * 70), note: null, status,
-          source: rnd() < .64 ? "online" : "manual", created_at: created, updated_at: created });
+          ...who, note: null, status, fee, paid: fee != null && rnd() < .9,
+          source, created_at: created, updated_at: created });
       }
     }
     return out;
@@ -360,13 +386,18 @@ const DemoStore = (() => {
     async signOut() {},
     async listDay(date) { return rows.filter(r => r.booking_date === date); },
     async listRange(from, to) { return rows.filter(r => r.booking_date >= from && r.booking_date <= to); },
+    async findByPhone(p) {
+      return rows.filter(r => r.phone === p)
+        .sort((a, b) => b.booking_date.localeCompare(a.booking_date) || b.created_at.localeCompare(a.created_at)).slice(0, 10);
+    },
     async add(r) {
       const now = new Date().toISOString();
       const row = { id: "m" + Date.now() + Math.random().toString(36).slice(2, 6), serial_no: nextSerial(r.booking_date, r.doctor),
-        status: "new", created_at: now, updated_at: now, ...r };
+        status: "new", created_at: now, updated_at: now, ...r, phone: r.phone || null };
       rows.push(row); save(); return row;
     },
     async update(id, patch) { const r = rows.find(x => x.id === id); Object.assign(r, patch, { updated_at: new Date().toISOString() }); save(); return r; },
+    async updatePayment(id, fee, paid) { return this.update(id, { fee, paid }); },
     onInsert(cb) { listeners.push(cb); return true; },
     async simulate() {
       const doc = pick(CLINIC.doctors);
@@ -389,7 +420,9 @@ const FireStore = (() => {
     listDay: date => api.listDay(date),
     listRange: (from, to) => api.listRange(from, to),
     add: row => api.addManual(row),
+    findByPhone: phone => api.findByPhone(phone),
     update: (id, patch) => api.updateStatus(id, patch.status),
+    updatePayment: (id, fee, paid) => api.updatePayment(id, fee, paid),
     onInsert(cb) { unsub = api.onNewBookings(cb, setLive); return true; }
   };
 })();
@@ -461,7 +494,7 @@ function filtered() {
   const q = state.search.trim().toLowerCase();
   return state.rows.filter(r =>
     (!state.doctor || r.doctor === state.doctor) &&
-    (!q || r.patient_name.toLowerCase().includes(q) || r.phone.includes(q.replace(/\D/g, "") || "\u0000")));
+    (!q || r.patient_name.toLowerCase().includes(q) || (r.phone || "").includes(q.replace(/\D/g, "") || "\u0000")));
 }
 
 function waLink(r) {
@@ -469,6 +502,13 @@ function waLink(r) {
     `${dateBn(r.booking_date)} তারিখে ${r.doctor}-এর কাছে আপনার সিরিয়াল নম্বর *${bn(r.serial_no)}* কনফার্ম করা হয়েছে।\n` +
     `ঠিকানা: ${CLINIC.address.bn}\nপ্রয়োজনে কল করুন: ${fmtPhone(CLINIC.reception)}\nধন্যবাদ।`;
   return `https://wa.me/88${r.phone}?text=${encodeURIComponent(text)}`;
+}
+
+// "৳৮০০ · বাকি" / "৳৮০০ · আদায় ✓". A paid pill is a button that offers to undo the payment.
+function feePill(r) {
+  if (r.paid) return `<br><button type="button" class="fee paid" data-act="unpay" title="আদায় বাতিল করতে চাপুন">${r.fee != null ? taka(r.fee) + " · " : ""}আদায় ✓</button>`;
+  if (r.fee != null && r.status !== "cancelled") return `<br><span class="fee due">${taka(r.fee)} · বাকি</span>`;
+  return "";
 }
 
 function renderSerials() {
@@ -492,13 +532,14 @@ function renderSerials() {
       ${list.map(r => `
       <div class="row${r.status === "new" ? " is-new" : ""}${state.flash.has(r.id) ? " flash" : ""}" data-id="${esc(r.id)}">
         <div class="serial num">${bn(r.serial_no)}</div>
-        <div class="who"><b>${esc(r.patient_name)}</b><a href="tel:+88${esc(r.phone)}">📞 ${esc(fmtPhone(r.phone))}</a>${r.age != null ? ` <small>· ${bn(r.age)} বছর</small>` : ""}</div>
+        <div class="who"><b>${esc(r.patient_name)}</b>${r.phone ? `<a href="tel:+88${esc(r.phone)}">📞 ${esc(fmtPhone(r.phone))}</a>` : `<span class="nophone">ফোন নেই</span>`}${r.age != null ? ` <small>· ${bn(r.age)} বছর</small>` : ""}${feePill(r)}</div>
         <div class="meta"><small>এসেছে ${timeBn(r.created_at)}</small><span class="src">${r.source === "manual" ? "রিসেপশন" : "অনলাইন"}</span>${r.note ? `<br><small>📝 ${esc(r.note)}</small>` : ""}</div>
         <div class="stcell"><span class="status st-${r.status}">${STATUS[r.status].icon} ${STATUS[r.status].bn}</span></div>
         <div class="acts">
-          ${r.status !== "cancelled" ? `<a class="btn btn-wa btn-sm" href="${waLink(r)}" target="_blank" rel="noopener" data-act="wa">WhatsApp কনফার্ম</a>` : ""}
+          ${r.status !== "cancelled" && r.phone ? `<a class="btn btn-wa btn-sm" href="${waLink(r)}" target="_blank" rel="noopener" data-act="wa">WhatsApp কনফার্ম</a>` : ""}
           ${r.status === "new" ? `<button class="btn btn-ghost btn-sm" data-act="confirmed">✓ কনফার্ম</button>` : ""}
           ${r.status === "new" || r.status === "confirmed" ? `<button class="btn btn-ghost btn-sm" data-act="arrived">★ এসেছেন</button>` : ""}
+          ${r.status !== "cancelled" && !r.paid ? `<button class="btn btn-ghost btn-sm" data-act="pay">💳 ফি আদায়</button>` : ""}
           ${r.status !== "cancelled" ? `<button class="btn btn-ghost btn-sm" data-act="cancelled">✕ বাতিল</button>` : `<button class="btn btn-ghost btn-sm" data-act="new">↺ ফিরিয়ে আনুন</button>`}
         </div>
       </div>`).join("")}
@@ -525,8 +566,26 @@ $("#list").addEventListener("click", e => {
   const btn = e.target.closest("[data-act]"); if (!btn) return;
   const id = btn.closest(".row").dataset.id, act = btn.dataset.act;
   if (act === "wa") { const r = state.rows.find(x => x.id === id); if (r && r.status === "new") setStatus(id, "confirmed"); return; }
+  if (act === "pay" || act === "unpay") { setPayment(id, act === "pay"); return; }
   setStatus(id, act);
 });
+
+async function setPayment(id, paid) {
+  const r = state.rows.find(x => x.id === id); if (!r) return;
+  let fee = r.fee;
+  if (paid) {
+    const ans = prompt(`${r.patient_name} — কত টাকা আদায় হয়েছে?`, String(r.fee ?? docFee(r.doctor) ?? ""));
+    if (ans === null) return;
+    const digits = ans.replace(/[০-৯]/g, d => "০১২৩৪৫৬৭৮৯".indexOf(d)).replace(/[\s,৳]/g, "");   // accepts Bangla digits
+    const n = digits === "" ? null : Number(digits);
+    if (n != null && !(Number.isInteger(n) && n >= 0 && n <= 100000)) { toast("সমস্যা", "সঠিক টাকার পরিমাণ লিখুন।"); return; }
+    fee = n;
+  } else if (!confirm(`${r.patient_name}-এর ফি আদায় বাতিল করবেন?`)) return;
+  const old = { fee: r.fee, paid: r.paid };
+  Object.assign(r, { fee, paid }); renderSerials();
+  try { Object.assign(r, await store.updatePayment(id, fee, paid)); }
+  catch (e) { Object.assign(r, old); renderSerials(); toast("সমস্যা", "ফি সেভ করা যায়নি: " + e.message); }
+}
 $("#statusChips").addEventListener("click", e => { const c = e.target.closest(".chip"); if (c) { state.status = c.dataset.status; renderSerials(); } });
 $("#fDate").addEventListener("change", e => { if (e.target.value) { state.date = e.target.value; loadDay(); } });
 $("#prevDay").addEventListener("click", () => { state.date = addDays(state.date, -1); loadDay(); });
@@ -536,9 +595,43 @@ $("#fSearch").addEventListener("input", e => { state.search = e.target.value; re
 
 /* ---- manual entry ---- */
 $("#addBtn").addEventListener("click", () => {
-  $("#addForm").reset(); $("#addErr").textContent = "";
+  $("#addForm").reset(); $("#addErr").textContent = ""; $("#prevBox").classList.add("hidden"); lastLookup = "";
   $("#aDate").value = state.date; if (state.doctor) $("#aDoctor").value = state.doctor;
-  $("#addModal").classList.remove("hidden"); $("#aName").focus();
+  feeTouched = false; prefillFee();
+  $("#addModal").classList.remove("hidden"); $("#aPhone").focus();
+});
+
+// Fee follows the chosen doctor until reception types their own amount.
+let feeTouched = false;
+function prefillFee() { if (!feeTouched) { const f = docFee($("#aDoctor").value); $("#aFee").value = f ?? ""; } }
+$("#aDoctor").addEventListener("change", prefillFee);
+$("#aFee").addEventListener("input", () => { feeTouched = true; });
+
+// Returning patient: as soon as a full mobile number is typed, show who has used it before.
+let lastLookup = "";
+$("#aPhone").addEventListener("input", async e => {
+  const p = e.target.value.replace(/\D/g, "").replace(/^88(?=01)/, "");
+  const box = $("#prevBox");
+  if (!/^01[3-9]\d{8}$/.test(p)) { box.classList.add("hidden"); lastLookup = ""; return; }
+  if (p === lastLookup) return;
+  lastLookup = p;
+  let past = [];
+  try { past = await store.findByPhone(p); } catch (err) { return; }
+  if (p !== lastLookup) return;   // number changed while we were loading
+  if (!past.length) { box.innerHTML = `<b>নতুন রোগী</b> — এই নম্বরে আগে কোনো সিরিয়াল নেই।`; box.classList.remove("hidden"); return; }
+  const people = []; past.forEach(r => { if (!people.some(x => x.patient_name === r.patient_name)) people.push(r); });
+  box.innerHTML = `<b>পুরনো রোগী</b> — নাম বেছে নিন:
+    <div class="names">${people.map((r, i) => `<button type="button" data-i="${i}">${esc(r.patient_name)}${r.age != null ? ` (${bn(r.age)})` : ""}</button>`).join("")}</div>
+    <ul>${past.slice(0, 5).map(r => `<li>${dateShort(r.booking_date)} · ${esc(r.doctor)} · ${STATUS[r.status] ? STATUS[r.status].bn : esc(r.status)}</li>`).join("")}</ul>`;
+  box.classList.remove("hidden");
+  box.querySelectorAll(".names button").forEach(b => b.addEventListener("click", () => {
+    const r = people[+b.dataset.i]; $("#aName").value = r.patient_name; $("#aAge").value = r.age ?? "";
+  }));
+  // Only one person on this number: fill the blanks straight away.
+  if (people.length === 1) {
+    if (!$("#aName").value.trim()) $("#aName").value = people[0].patient_name;
+    if (!$("#aAge").value && people[0].age != null) $("#aAge").value = people[0].age;
+  }
 });
 $("#addCancel").addEventListener("click", () => $("#addModal").classList.add("hidden"));
 $("#addModal").addEventListener("click", e => { if (e.target.id === "addModal") $("#addModal").classList.add("hidden"); });
@@ -547,7 +640,8 @@ $("#addForm").addEventListener("submit", async e => {
   const f = e.target; if (!f.checkValidity()) { f.reportValidity(); return; }
   const doctor = $("#aDoctor").value;
   const row = { booking_date: $("#aDate").value, doctor, dept: deptOf(doctor), patient_name: $("#aName").value.trim(),
-    phone: $("#aPhone").value.trim(), age: $("#aAge").value ? +$("#aAge").value : null, note: $("#aNote").value.trim() || null, source: "manual" };
+    phone: $("#aPhone").value.trim() || null, age: $("#aAge").value ? +$("#aAge").value : null, note: $("#aNote").value.trim() || null,
+    fee: $("#aFee").value === "" ? null : +$("#aFee").value, paid: $("#aPaid").checked, source: "manual" };
   const btn = f.querySelector("[type=submit]"); btn.disabled = true;
   try {
     const saved = await store.add(row);
@@ -565,8 +659,8 @@ $("#printBtn").addEventListener("click", () => {
   const groups = {}; rows.forEach(r => (groups[r.doctor] = groups[r.doctor] || []).push(r));
   $("#printArea").innerHTML = `<h1>${esc(CLINIC.name.bn)} — সিরিয়াল তালিকা, ${dateBn(state.date)}</h1>` +
     (rows.length ? Object.entries(groups).map(([doc, list]) => `<section><h2>${esc(doc)} (${bn(list.length)} জন)</h2>
-      <table><tr><th>সিরিয়াল</th><th>রোগীর নাম</th><th>ফোন</th><th>বয়স</th><th>স্ট্যাটাস</th><th>নোট</th></tr>
-      ${list.map(r => `<tr><td>${bn(r.serial_no)}</td><td>${esc(r.patient_name)}</td><td>${esc(fmtPhone(r.phone))}</td><td>${r.age != null ? bn(r.age) : ""}</td><td>${STATUS[r.status].bn}</td><td>${esc(r.note || "")}</td></tr>`).join("")}
+      <table><tr><th>সিরিয়াল</th><th>রোগীর নাম</th><th>ফোন</th><th>বয়স</th><th>স্ট্যাটাস</th><th>ফি</th><th>আদায়</th><th>নোট</th></tr>
+      ${list.map(r => `<tr><td>${bn(r.serial_no)}</td><td>${esc(r.patient_name)}</td><td>${r.phone ? esc(fmtPhone(r.phone)) : "—"}</td><td>${r.age != null ? bn(r.age) : ""}</td><td>${STATUS[r.status].bn}</td><td>${r.fee != null ? taka(r.fee) : ""}</td><td>${r.paid ? "✓" : ""}</td><td>${esc(r.note || "")}</td></tr>`).join("")}
       </table></section>`).join("") : "<p>কোনো সিরিয়াল নেই।</p>");
   window.print();
 });
@@ -574,8 +668,9 @@ $("#printBtn").addEventListener("click", () => {
 $("#csvBtn").addEventListener("click", () => {
   const rows = filtered().filter(r => !state.status || r.status === state.status).sort((a, b) => a.doctor.localeCompare(b.doctor) || a.serial_no - b.serial_no);
   const cell = v => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-  const lines = [["তারিখ", "ডাক্তার/সেবা", "সিরিয়াল", "রোগীর নাম", "ফোন", "বয়স", "স্ট্যাটাস", "উৎস", "নোট", "বুকিংয়ের সময়"].join(",")]
-    .concat(rows.map(r => [r.booking_date, r.doctor, r.serial_no, r.patient_name, r.phone, r.age ?? "", STATUS[r.status].bn,
+  const lines = [["তারিখ", "ডাক্তার/সেবা", "সিরিয়াল", "রোগীর নাম", "ফোন", "বয়স", "স্ট্যাটাস", "ফি (টাকা)", "আদায়", "উৎস", "নোট", "বুকিংয়ের সময়"].join(",")]
+    .concat(rows.map(r => [r.booking_date, r.doctor, r.serial_no, r.patient_name, r.phone || "—", r.age ?? "", STATUS[r.status].bn,
+      r.fee ?? "", r.paid ? "হ্যাঁ" : "না",
       r.source === "manual" ? "রিসেপশন" : "অনলাইন", r.note || "", new Date(r.created_at).toLocaleString("en-GB", { timeZone: "Asia/Dhaka" })].map(cell).join(",")));
   const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a");
@@ -665,11 +760,15 @@ async function renderReports() {
   const confirmed = inRange.filter(r => r.status === "confirmed" || r.status === "arrived").length;
   const cancelled = inRange.filter(r => r.status === "cancelled").length;
   const upcoming = rows.filter(r => r.booking_date > to && r.status !== "cancelled").length;
+  const paidSum = list => list.filter(r => r.paid && r.status !== "cancelled").reduce((s, r) => s + (r.fee || 0), 0);
+  const todayPaid = paidSum(today), monthPaid = paidSum(inRange);
+  const todayDue = today.filter(r => !r.paid && r.fee != null && r.status !== "cancelled").length;
   $("#tiles").innerHTML = [
     ["আজকের সিরিয়াল", bn(today.filter(r => r.status !== "cancelled").length), `${bn(today.filter(r => r.status === "new").length)} টি এখনো কনফার্ম হয়নি`],
     ["গত ৭ দিন", bn(week.length), `সামনের দিনগুলোর জন্য বুক: ${bn(upcoming)}`],
     ["কনফার্ম হার", bn(pct(confirmed, inRange.length)) + "%", "গত ৩০ দিন, কনফার্ম + এসেছেন"],
-    ["বাতিল", bn(cancelled), `গত ৩০ দিন (${bn(pct(cancelled, inRange.length))}%)`]
+    ["বাতিল", bn(cancelled), `গত ৩০ দিন (${bn(pct(cancelled, inRange.length))}%)`],
+    ["আজ ফি আদায়", taka(todayPaid), `গত ৩০ দিন: ${taka(monthPaid)}${todayDue ? ` · আজ বাকি ${bn(todayDue)} জন` : ""}`]
   ].map(([l, v, s]) => `<div class="tile"><div class="lbl">${l}</div><div class="val num">${v}</div><div class="sub">${s}</div></div>`).join("");
 
   const days = Array.from({ length: 30 }, (_, i) => { const date = addDays(from, i); return { date, n: active.filter(r => r.booking_date === date).length }; });

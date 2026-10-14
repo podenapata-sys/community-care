@@ -87,26 +87,47 @@ async function bookOnline(p, name, phone, docIndex = 0) {
   await dash.locator(`#list .row[data-id="${firstId}"] button[data-act=confirmed]`).click();
   await dash.waitForTimeout(1500);
 
-  // 6. Manual entry gets the next serial
+  // 6. Manual entry for a returning patient: typing the phone auto-fills the name, fee follows the doctor
   await dash.click("#addBtn");
-  await dash.fill("#aName", "হাঁটা রোগী"); await dash.fill("#aPhone", "01711000003");
-  await dash.fill("#aDate", tomorrow);
   const docName = await dash.evaluate(() => window.CLINIC.doctors[0].name);
   await dash.selectOption("#aDoctor", docName);
+  await dash.fill("#aDate", tomorrow);
+  await dash.fill("#aPhone", "01711000001");
+  await dash.waitForSelector("#prevBox:not(.hidden)", { timeout: 10000 });
+  ok(/পুরনো রোগী/.test(await dash.textContent("#prevBox")), "returning-patient panel appears");
+  ok((await dash.inputValue("#aName")) === "রহিম উদ্দিন", "name auto-filled from earlier booking");
+  const docFee = await dash.evaluate(n => window.CLINIC.doctors.find(d => d.name === n).fee, docName);
+  ok((await dash.inputValue("#aFee")) === docFee, "visit fee prefilled from doctor (" + docFee + ")");
+  await dash.check("#aPaid");
   await dash.click("#addForm button[type=submit]"); await dash.waitForTimeout(2000);
   ok(/সিরিয়াল ৩/.test(await dash.locator(".toast").last().textContent()), "manual entry gets serial 3");
 
-  // 7. Reload: session persists, status + manual row persisted
+  // 7. Walk-in without a phone number
+  await dash.click("#addBtn");
+  await dash.fill("#aName", "হাঁটা রোগী"); await dash.fill("#aDate", tomorrow);
+  await dash.selectOption("#aDoctor", docName);
+  await dash.click("#addForm button[type=submit]"); await dash.waitForTimeout(2000);
+  ok(/সিরিয়াল ৪/.test(await dash.locator(".toast").last().textContent()), "walk-in without phone gets serial 4");
+
+  // 8. Record payment on the first online booking
+  dash.once("dialog", d => d.accept("800"));
+  await dash.locator(`#list .row[data-id="${firstId}"] button[data-act=pay]`).click();
+  await dash.waitForTimeout(1500);
+
+  // 9. Reload: session persists, status, payment and walk-in all persisted
   await dash.reload(); await dash.waitForSelector("#appView:not(.hidden)", { timeout: 15000 });
   await dash.click("#nextDay"); await dash.waitForSelector("#list .row", { timeout: 15000 });
-  ok(await dash.locator("#list .row").count() === 3, "3 bookings after reload");
+  ok(await dash.locator("#list .row").count() === 4, "4 bookings after reload");
   ok(/কনফার্ম/.test(await dash.textContent(`#list .row[data-id="${firstId}"] .status`)), "status change persisted");
+  ok(/৳৮০০ · আদায় ✓/.test(await dash.textContent(`#list .row[data-id="${firstId}"] .who`)), "payment persisted");
+  const walkRow = dash.locator("#list .row", { hasText: "হাঁটা রোগী" });
+  ok(/ফোন নেই/.test(await walkRow.textContent()) && await walkRow.locator("[data-act=wa], a[href^=tel]").count() === 0, "walk-in shows 'ফোন নেই', no call/WhatsApp");
 
-  // 8. Reports tab loads from Firestore
+  // 10. Reports tab loads from Firestore, fee tile counts both payments
   await dash.click(".tab[data-tab=reports]"); await dash.waitForTimeout(1500);
-  ok(/৩/.test(await dash.textContent("#tiles")), "reports tiles render");
+  ok(/৪/.test(await dash.textContent("#tiles")), "reports tiles render");
 
-  // 9. Anti-spam: 4th booking for one phone on one day is refused
+  // 11. Anti-spam: 4th booking for one phone on one day is refused
   await bookOnline(site, "স্প্যাম", "01799000009", 1); await bookOnline(site, "স্প্যাম", "01799000009", 2);
   await bookOnline(site, "স্প্যাম", "01799000009", 3);
   const m4 = await bookOnline(site, "স্প্যাম", "01799000009", 4);

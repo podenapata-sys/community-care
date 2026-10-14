@@ -36,12 +36,15 @@ function loadScript(props, sent) {
 }
 
 const dhaka = off => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" }).format(new Date(Date.now() + off * 864e5));
-function seedBooking(id, date, doctor, status, source) {
+function seedBooking(id, date, doctor, status, source, fee, paid) {
+  const extra = {};
+  if (fee != null) extra.fee = { integerValue: String(fee) };
+  if (paid != null) extra.paid = { booleanValue: paid };
   const r = http(`${FS}/v1/projects/${PROJECT}/databases/(default)/documents/bookings/${id}`, {
     method: "patch", contentType: "application/json", headers: { Authorization: "Bearer owner" },
     payload: JSON.stringify({ fields: {
       bookingDate: { stringValue: date }, doctor: { stringValue: doctor }, status: { stringValue: status },
-      source: { stringValue: source }, patientName: { stringValue: "Test" }, phone: { stringValue: "01711111111" }, serialNo: { integerValue: "1" } } })
+      source: { stringValue: source }, patientName: { stringValue: "Test" }, phone: { stringValue: "01711111111" }, serialNo: { integerValue: "1" }, ...extra } })
   });
   if (r.code !== 200) throw new Error("seed failed " + r.body);
 }
@@ -54,11 +57,11 @@ http(`${FS}/v1/projects/${PROJECT}/databases/(default)/documents/reporters/${bot
   payload: JSON.stringify({ fields: { name: { stringValue: "Daily report" } } })
 });
 const y = dhaka(-1), t = dhaka(0), t3 = dhaka(3), t10 = dhaka(10);
-seedBooking("y1", y, "Dr. A", "arrived", "online");
-seedBooking("y2", y, "Dr. A", "arrived", "manual");
+seedBooking("y1", y, "Dr. A", "arrived", "online", 800, true);
+seedBooking("y2", y, "Dr. A", "arrived", "manual", 500, true);
 seedBooking("y3", y, "Dr. B", "new", "online");
-seedBooking("y4", y, "Dr. B", "cancelled", "online");
-seedBooking("y5", y, "Dr. A", "confirmed", "online");
+seedBooking("y4", y, "Dr. B", "cancelled", "online", 800, true);   // cancelled: not counted as revenue
+seedBooking("y5", y, "Dr. A", "confirmed", "online", 800, false);
 seedBooking("old", dhaka(-2), "Dr. A", "arrived", "online");
 seedBooking("t1", t, "Dr. A", "new", "online");
 seedBooking("t2", t, "Dr. C", "cancelled", "online");
@@ -80,6 +83,8 @@ ok(r.todayBooked === 1 && r.weekBooked === 2, `upcoming excludes cancelled and >
 ok(/৪ টি সিরিয়াল/.test(sent[0].subject), "subject in Bangla with count — " + sent[0].subject);
 ok(/ড্যাশবোর্ড খুলুন/.test(sent[0].htmlBody) && /Dr\. A/.test(sent[0].htmlBody), "html has doctor table and dashboard link");
 ok(!/01711111111/.test(sent[0].htmlBody), "email contains no patient phone numbers");
+ok(r.feeCollected === 1300 && r.paidCount === 2 && r.unpaidCount === 1, `fee totals exclude cancelled (৳${r.feeCollected}, ${r.paidCount} paid, ${r.unpaidCount} due)`);
+ok(/ফি আদায়: <b>৳১৩০০<\/b> \(২ জন\) · বাকি: <b>১<\/b> জন/.test(sent[0].htmlBody), "html shows fee collected and due count");
 fs.writeFileSync(path.join(process.env.OUT_DIR || __dirname, "report-sample.html"), sent[0].htmlBody);
 
 // ---- failures ----

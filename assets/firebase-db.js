@@ -31,8 +31,8 @@ function toRow(snap) {
   const iso = t => (t && t.toDate ? t.toDate() : new Date()).toISOString();
   return {
     id: snap.id, serial_no: d.serialNo, booking_date: d.bookingDate, doctor: d.doctor, dept: d.dept ?? null,
-    patient_name: d.patientName, phone: d.phone, age: d.age ?? null, note: d.note ?? null,
-    status: d.status, source: d.source, created_at: iso(d.createdAt), updated_at: iso(d.updatedAt)
+    patient_name: d.patientName, phone: d.phone ?? null, age: d.age ?? null, note: d.note ?? null,
+    fee: d.fee ?? null, paid: !!d.paid, status: d.status, source: d.source, created_at: iso(d.createdAt), updated_at: iso(d.updatedAt)
   };
 }
 
@@ -40,7 +40,9 @@ function toRow(snap) {
    One transaction bumps the doctor/day serial counter, (for online bookings) the
    phone/day limit, and writes the booking — the rules check all three agree. */
 export async function createBooking(row, source = "online") {
-  const phone = String(row.phone || "").replace(/\D/g, "").replace(/^88(?=01)/, "");
+  // Manual (reception) entries may have no phone — walk-in patients without a mobile.
+  const phone = String(row.phone || "").replace(/\D/g, "").replace(/^88(?=01)/, "") || null;
+  if (!phone && source === "online") throw new Error("invalid_phone");
   const counterRef = fs.doc(db, "counters", `${row.booking_date}|${row.doctor}`);
   const limitRef = fs.doc(db, "limits", `${row.booking_date}|${phone}`);
   const bookingRef = fs.doc(fs.collection(db, "bookings"));
@@ -54,13 +56,18 @@ export async function createBooking(row, source = "online") {
       tx.set(limitRef, { n: used });
     }
     tx.set(counterRef, { n });
-    tx.set(bookingRef, {
+    const booking = {
       serialNo: n, bookingDate: row.booking_date, doctor: row.doctor, dept: row.dept ?? null,
       patientName: String(row.patient_name || "").trim(), phone,
       age: row.age === "" || row.age == null ? null : Math.round(+row.age),
       note: row.note ? String(row.note).trim().slice(0, 500) : null,
       status: "new", source, createdAt: fs.serverTimestamp(), updatedAt: fs.serverTimestamp()
-    });
+    };
+    if (source === "manual") {   // only staff may record a fee / payment
+      booking.fee = row.fee === "" || row.fee == null ? null : Math.round(+row.fee);
+      booking.paid = !!row.paid;
+    }
+    tx.set(bookingRef, booking);
     return n;
   });
   return { id: bookingRef.id, serial };
@@ -101,7 +108,21 @@ export async function listRange(from, to) {
 export async function addManual(row) {
   const { id, serial } = await createBooking(row, "manual");
   const now = new Date().toISOString();
-  return { ...row, id, serial_no: serial, status: "new", source: "manual", created_at: now, updated_at: now };
+  return { ...row, phone: row.phone || null, fee: row.fee === "" || row.fee == null ? null : Math.round(+row.fee), paid: !!row.paid,
+    id, serial_no: serial, status: "new", source: "manual", created_at: now, updated_at: now };
+}
+
+// Earlier bookings for a phone number (newest first) — for returning-patient auto-fill.
+export async function findByPhone(phone) {
+  const q = fs.query(fs.collection(db, "bookings"), fs.where("phone", "==", phone));
+  return (await fs.getDocs(q)).docs.map(toRow)
+    .sort((a, b) => b.booking_date.localeCompare(a.booking_date) || b.created_at.localeCompare(a.created_at))
+    .slice(0, 10);
+}
+
+export async function updatePayment(id, fee, paid) {
+  await fs.updateDoc(fs.doc(db, "bookings", id), { fee: fee == null ? null : Math.round(+fee), paid: !!paid, updatedAt: fs.serverTimestamp() });
+  return { fee: fee == null ? null : Math.round(+fee), paid: !!paid };
 }
 
 export async function updateStatus(id, status) {

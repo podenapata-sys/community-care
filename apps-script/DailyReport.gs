@@ -95,7 +95,9 @@ function queryBookings_(cfg, token, from, to) {
   return body.filter(function (e) { return e.document; }).map(function (e) {
     var f = e.document.fields || {};
     var str = function (k) { return f[k] && (f[k].stringValue != null ? f[k].stringValue : null); };
-    return { date: str('bookingDate'), doctor: str('doctor'), status: str('status'), source: str('source') };
+    var fee = f.fee && f.fee.integerValue != null ? +f.fee.integerValue : (f.fee && f.fee.doubleValue != null ? +f.fee.doubleValue : null);
+    return { date: str('bookingDate'), doctor: str('doctor'), status: str('status'), source: str('source'),
+      fee: fee, paid: !!(f.paid && f.paid.booleanValue) };
   });
 }
 
@@ -115,6 +117,9 @@ function summarize_(rows, upcoming, today) {
     manual: count(active, function (r) { return r.source === 'manual'; }),
     doctors: Object.keys(byDoctor).map(function (d) { return { doctor: d, n: byDoctor[d] }; })
       .sort(function (a, b) { return b.n - a.n || (a.doctor < b.doctor ? -1 : 1); }),
+    feeCollected: active.reduce(function (s, r) { return s + (r.paid && r.fee ? r.fee : 0); }, 0),
+    paidCount: count(active, function (r) { return r.paid; }),
+    unpaidCount: count(active, function (r) { return !r.paid && r.fee != null; }),
     todayBooked: count(upcoming, function (r) { return r.date === today; }),
     weekBooked: upcoming.length
   };
@@ -144,6 +149,8 @@ function renderHtml_(r, date, dashboardUrl) {
         tile('কনফার্ম হয়নি', r.pending, '#2d4fc9') + tile('বাতিল', r.cancelled, '#c0392b') +
       '</tr></table>' +
       '<p style="font-size:14px;margin:12px 6px">অনলাইনে এসেছে <b>' + bn_(r.online) + '</b> টি, রিসেপশন থেকে যোগ হয়েছে <b>' + bn_(r.manual) + '</b> টি।</p>' +
+      '<p style="font-size:14px;margin:12px 6px">ফি আদায়: <b>৳' + bn_(r.feeCollected) + '</b> (' + bn_(r.paidCount) + ' জন)' +
+        (r.unpaidCount ? ' · বাকি: <b>' + bn_(r.unpaidCount) + '</b> জন' : '') + '</p>' +
       '<h3 style="font-size:15px;margin:16px 6px 6px">ডাক্তার অনুযায়ী</h3>' +
       '<table style="width:100%;border-collapse:collapse;background:#fff;border-radius:10px;font-size:14px">' + docRows + '</table>' +
       '<h3 style="font-size:15px;margin:16px 6px 6px">সামনে</h3>' +

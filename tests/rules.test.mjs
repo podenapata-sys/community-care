@@ -31,10 +31,12 @@ async function book(db, { date = tomorrow, doctor = "Dr. Test", phone = "0171111
     const n = (c.exists() ? c.data().n : 0) + 1;
     if (l) tx.set(lRef, { n: (l.exists() ? l.data().n : 0) + 1 });
     tx.set(cRef, { n });
-    tx.set(bRef, {
+    const data = {
       serialNo: n, bookingDate: date, doctor, dept: "med", patientName: "Test Patient", phone, age: 30, note: null,
       status: "new", source, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), ...tamper.fields
-    });
+    };
+    if (tamper.noPhone) delete data.phone;
+    tx.set(bRef, data);
     return { id: bRef.id, serial: n };
   });
 }
@@ -81,6 +83,26 @@ await check("staff manual entry gets next serial 3", Promise.resolve(manual.seri
 await check("staff can change status", assertSucceeds(updateDoc(doc(staffDb, "bookings", first.id), { status: "confirmed", updatedAt: serverTimestamp() })));
 await check("staff cannot set unknown status", assertFails(updateDoc(doc(staffDb, "bookings", first.id), { status: "deleted", updatedAt: serverTimestamp() })));
 await check("staff cannot edit patient name", assertFails(updateDoc(doc(staffDb, "bookings", first.id), { patientName: "X Y", updatedAt: serverTimestamp() })));
+// ---- walk-ins without phone, visit fee & payment ----
+const walkIn = await book(staffDb, { source: "manual", phone: null }).catch(e => ({ err: e }));
+await check("staff walk-in with phone null allowed", Promise.resolve(walkIn.serial === 4 || (() => { throw new Error(walkIn.err ? walkIn.err.message : "got " + walkIn.serial); })()));
+await check("staff walk-in with no phone field allowed", assertSucceeds(book(staffDb, { source: "manual", tamper: { noPhone: true } })));
+await check("staff manual with bad phone rejected", assertFails(book(staffDb, { source: "manual", phone: "12345" })));
+await check("online booking with phone null rejected", assertFails(book(pub, { phone: null })));
+await check("online booking with no phone field rejected", assertFails(book(pub, { tamper: { noPhone: true, skipLimit: true } })));
+await check("online booking cannot set fee", assertFails(book(pub, { phone: "01788888881", tamper: { fields: { fee: 0 } } })));
+await check("online booking cannot mark itself paid", assertFails(book(pub, { phone: "01788888882", tamper: { fields: { paid: true } } })));
+await check("staff manual entry with fee & paid allowed", assertSucceeds(book(staffDb, { source: "manual", phone: "01788888883", tamper: { fields: { fee: 800, paid: true } } })));
+await check("staff manual entry with string fee rejected", assertFails(book(staffDb, { source: "manual", phone: "01788888884", tamper: { fields: { fee: "800" } } })));
+await check("staff can record payment", assertSucceeds(updateDoc(doc(staffDb, "bookings", first.id), { fee: 800, paid: true, updatedAt: serverTimestamp() })));
+await check("staff can undo payment", assertSucceeds(updateDoc(doc(staffDb, "bookings", first.id), { paid: false, updatedAt: serverTimestamp() })));
+await check("staff cannot set negative fee", assertFails(updateDoc(doc(staffDb, "bookings", first.id), { fee: -5, updatedAt: serverTimestamp() })));
+await check("staff cannot set fee above 100000", assertFails(updateDoc(doc(staffDb, "bookings", first.id), { fee: 100001, updatedAt: serverTimestamp() })));
+await check("staff cannot set paid to a string", assertFails(updateDoc(doc(staffDb, "bookings", first.id), { paid: "yes", updatedAt: serverTimestamp() })));
+await check("staff cannot edit phone", assertFails(updateDoc(doc(staffDb, "bookings", first.id), { phone: "01799999990", updatedAt: serverTimestamp() })));
+await check("staff can look up bookings by phone", assertSucceeds(getDocs(query(collection(staffDb, "bookings"), where("phone", "==", "01711111111")))));
+await check("public cannot look up bookings by phone", assertFails(getDocs(query(collection(pub, "bookings"), where("phone", "==", "01711111111")))));
+
 await check("staff cannot delete", assertFails(deleteDoc(doc(staffDb, "bookings", first.id))));
 await check("staff cannot add themselves new staff", assertFails(setDoc(doc(staffDb, "staff/newguy"), { name: "x" })));
 
@@ -90,6 +112,7 @@ const botDb = env.authenticatedContext("bot1", { email: "report@test" }).firesto
 await check("reporter can list a day's bookings", assertSucceeds(getDocs(query(collection(botDb, "bookings"), where("bookingDate", "==", tomorrow)))));
 await check("reporter cannot change status", assertFails(updateDoc(doc(botDb, "bookings", first.id), { status: "cancelled", updatedAt: serverTimestamp() })));
 await check("reporter cannot add a manual booking", assertFails(book(botDb, { source: "manual", phone: "01777777777" })));
+await check("reporter cannot mark a booking paid", assertFails(updateDoc(doc(botDb, "bookings", first.id), { paid: true, updatedAt: serverTimestamp() })));
 await check("reporter cannot add themselves as staff", assertFails(setDoc(doc(botDb, "staff/bot1"), { name: "x" })));
 
 await env.cleanup();
