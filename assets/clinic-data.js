@@ -19,7 +19,7 @@ window.CLINIC = {
     { icon: "baby",  bn: "গাইনি ও প্রসূতি",        en: "Gynae & Obstetrics", dbn: "প্রসূতি সেবা ও চেকআপ",             den: "Maternity care & check-ups" },
     { icon: "child", bn: "শিশু বিশেষজ্ঞ",          en: "Paediatrics",        dbn: "শিশুর সম্পূর্ণ চিকিৎসা",            den: "Complete child care" },
     { icon: "bed",   bn: "ভর্তি ও কেবিন",           en: "Admission & Cabins", dbn: "পরিচ্ছন্ন ওয়ার্ড ও কেবিন",          den: "Clean wards and cabins" },
-    { icon: "amb",   bn: "২৪/৭ জরুরি বিভাগ",        en: "24/7 Emergency",     dbn: "যেকোনো সময় জরুরি সেবা",            den: "Emergency care any time" }
+    { icon: "amb",   bn: "জরুরি বিভাগ",            en: "Emergency",          dbn: "জরুরি প্রয়োজনে সরাসরি কল করুন",     den: "Call our emergency line directly" }
   ],
 
   // Departments used for the doctor filter chips (order = chip order).

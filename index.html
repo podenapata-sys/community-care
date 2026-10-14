@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Community Care Hospital & Diagnostic — Khulna</title>
 <meta name="description" content="Community Care Hospital & Diagnostic, Tetultola Mor, Khulna. Book doctor appointments and diagnostic tests online.">
-<meta name="robots" content="noindex">
+<meta name="robots" content="index, follow">
 <meta name="theme-color" content="#0d2470">
 <link rel="icon" type="image/png" href="assets/logo-mark.png">
 <link rel="apple-touch-icon" href="assets/logo-mark.png">
@@ -37,11 +37,8 @@
   a { color: inherit; text-decoration: none; }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
 
-  /* Placeholder marker — remove class once real data is in */
-  .ph { outline: 2px dashed #f5a524; outline-offset: 2px; border-radius: 4px; }
-  .demo-bar {
-    background: #fff4dd; color: #7a4b00; font-size: 13px; text-align: center; padding: 6px 16px;
-  }
+  /* Still-to-confirm marker: invisible to patients, outlined when the URL has ?review=1 */
+  .review .ph { outline: 2px dashed #f5a524; outline-offset: 2px; border-radius: 4px; }
 
   /* Header */
   header { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
@@ -214,8 +211,6 @@
 </head>
 <body>
 
-<div class="demo-bar" data-bn="ডেমো প্রিভিউ — চূড়ান্ত তথ্য হাসপাতাল থেকে সংগ্রহের পর যুক্ত হবে" data-en="Demo preview — final details will be added once provided by the hospital"></div>
-
 <header>
   <div class="wrap nav">
     <a href="#" class="brand">
@@ -239,22 +234,21 @@
     <div>
       <span class="pill" data-bn="📍 তেঁতুলতলা মোড়, খুলনা" data-en="📍 Tetultola Mor, Khulna"></span>
       <h1 data-bn="লাইনে না দাঁড়িয়ে, ঘরে বসেই ডাক্তারের সিরিয়াল নিন" data-en="Skip the queue. Book your doctor from home."></h1>
-      <p data-bn="বিশেষজ্ঞ ডাক্তার, আধুনিক ডায়াগনস্টিক ও ২৪/৭ জরুরি সেবা — এক জায়গায়। ২ মিনিটে অনলাইনে অ্যাপয়েন্টমেন্ট বুক করুন, WhatsApp-এ কনফার্মেশন পান।" data-en="Specialist doctors, modern diagnostics and 24/7 emergency care in one place. Book online in 2 minutes and get confirmation on WhatsApp."></p>
+      <p data-bn="বিশেষজ্ঞ ডাক্তার, আধুনিক ডায়াগনস্টিক ও জরুরি সেবা — এক জায়গায়। ২ মিনিটে অনলাইনে অ্যাপয়েন্টমেন্ট বুক করুন, WhatsApp-এ কনফার্মেশন পান।" data-en="Specialist doctors, modern diagnostics and emergency care in one place. Book online in 2 minutes and get confirmation on WhatsApp."></p>
       <div class="hero-ctas">
         <a href="#book" class="btn btn-primary" data-bn="অ্যাপয়েন্টমেন্ট বুক করুন" data-en="Book Appointment"></a>
         <a href="#" class="btn btn-ghost js-call" data-bn="📞 কল করুন" data-en="📞 Call Us"></a>
       </div>
       <div class="hero-stats">
         <div class="stat"><b class="js-doc-count">39+</b><span data-bn="বিশেষজ্ঞ ডাক্তার" data-en="Specialist doctors"></span></div>
-        <div class="stat"><b class="ph">XX+</b><span data-bn="ডায়াগনস্টিক টেস্ট" data-en="Diagnostic tests"></span></div>
-        <div class="stat"><b>24/7</b><span data-bn="জরুরি সেবা" data-en="Emergency"></span></div>
+        <div class="stat"><b class="js-dept-count">15</b><span data-bn="চিকিৎসা বিভাগ" data-en="Departments"></span></div>
+        <div class="stat"><b data-bn="২৪ ঘণ্টা" data-en="24 hrs"></b><span data-bn="অনলাইন সিরিয়াল" data-en="Online booking"></span></div>
       </div>
     </div>
     <div class="hero-card">
-      <h3 data-bn="🕒 সেবার সময়" data-en="🕒 Opening Hours"></h3>
-      <div class="hours-row"><span data-bn="শনি – বৃহস্পতি" data-en="Sat – Thu"></span><span class="ph">9:00 AM – 10:00 PM</span></div>
-      <div class="hours-row"><span data-bn="শুক্রবার" data-en="Friday"></span><span class="ph">3:00 PM – 10:00 PM</span></div>
-      <div class="hours-row"><span data-bn="ডায়াগনস্টিক রিপোর্ট" data-en="Report delivery"></span><span class="ph">Same day</span></div>
+      <h3 data-bn="🕒 সময়সূচি" data-en="🕒 Timings"></h3>
+      <div class="hours-row"><span data-bn="ডাক্তারদের চেম্বার" data-en="Doctors' chambers"></span><span data-bn="বিকাল ৩টা – রাত ৯টা" data-en="3 PM – 9 PM"></span></div>
+      <div class="hours-row"><span data-bn="অনলাইন সিরিয়াল" data-en="Online booking"></span><span data-bn="২৪ ঘণ্টা" data-en="24 hours"></span></div>
       <a href="#" class="emergency js-emergency">
         <span data-bn="🚑 জরুরি প্রয়োজনে" data-en="🚑 Emergency"></span>
         <span class="js-emergency-text ph">01XXX-XXXXXX</span>
@@ -268,7 +262,6 @@
     <div class="sec-head">
       <div class="kicker" data-bn="আমাদের সেবা" data-en="OUR SERVICES"></div>
       <h2 data-bn="আপনার প্রয়োজনীয় সব চিকিৎসা এক ছাদের নিচে" data-en="Everything you need under one roof"></h2>
-      <p class="ph" data-bn="চূড়ান্ত সেবার তালিকা হাসপাতাল থেকে নিশ্চিত করা হবে" data-en="Final service list to be confirmed by the hospital"></p>
     </div>
     <div class="grid g4" id="servicesGrid"></div>
   </div>
@@ -338,7 +331,7 @@
         </div>
         <div class="contact-item">
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
-          <div><b data-bn="সময়" data-en="Hours"></b><span class="ph" data-bn="শনি–বৃহস্পতি ৯টা – রাত ১০টা" data-en="Sat–Thu 9 AM – 10 PM"></span></div>
+          <div><b data-bn="সময়" data-en="Hours"></b><span data-bn="ডাক্তারদের চেম্বার: বিকাল ৩টা – রাত ৯টা" data-en="Doctors' chambers: 3 PM – 9 PM"></span></div>
         </div>
       </div>
       <div class="map">
@@ -555,6 +548,9 @@ document.getElementById("bookingForm").addEventListener("submit", async e => {
 });
 
 document.getElementById("yr").textContent = new Date().getFullYear();
+if (/[?&]review=1\b/.test(location.search)) document.body.classList.add("review");
+document.querySelector(".js-dept-count").textContent =
+  Object.keys(CONFIG.depts).filter(k => CONFIG.doctors.some(d => d.dept === k)).length;
 applyLang();
 applyContacts();
 </script>
