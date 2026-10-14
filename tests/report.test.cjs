@@ -20,13 +20,15 @@ function http(url, opts = {}) {
 }
 const json = (url, payload, headers) => JSON.parse(http(url, { method: "post", contentType: "application/json", payload: JSON.stringify(payload), headers }).body);
 
+const cache = {};
 function loadScript(props, sent) {
   const ctx = {
     console, Date, JSON, Math, String, Object, Error,
     Logger: { log: () => {} },
-    PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] ?? null }) },
+    PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] ?? null, setProperty: (k, v) => { props[k] = v; } }) },
+    CacheService: { getScriptCache: () => ({ get: k => cache[k] ?? null, put: (k, v) => { cache[k] = v; }, remove: k => { delete cache[k]; } }) },
     UrlFetchApp: { fetch: (url, o) => { const r = http(url, o); return { getResponseCode: () => r.code, getContentText: () => r.body }; } },
-    MailApp: { sendEmail: m => sent.push(m) },
+    MailApp: { sendEmail: m => sent.push(m), getRemainingDailyQuota: () => 100 },
     Utilities: { formatDate: (d, tz) => new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(d) },
     ScriptApp: {}
   };
@@ -89,6 +91,37 @@ ok(!r.doctors.some(d => d.n > 3), "binned booking not counted for its doctor");
 ok(r.feeCollected === 1300 && r.paidCount === 2 && r.unpaidCount === 1, `fee totals exclude cancelled (৳${r.feeCollected}, ${r.paidCount} paid, ${r.unpaidCount} due)`);
 ok(/ফি আদায়: <b>৳১৩০০<\/b> \(২ জন\) · বাকি: <b>১<\/b> জন/.test(sent[0].htmlBody), "html shows fee collected and due count");
 fs.writeFileSync(path.join(process.env.OUT_DIR || __dirname, "report-sample.html"), sent[0].htmlBody);
+
+// ---- new-booking alerts ----
+const ago = min => new Date(Date.now() - min * 60e3).toISOString();
+function seedNew(id, createdAt, source, extra = {}) {
+  const r = http(`${FS}/v1/projects/${PROJECT}/databases/(default)/documents/bookings/${id}`, {
+    method: "patch", contentType: "application/json", headers: { Authorization: "Bearer owner" },
+    payload: JSON.stringify({ fields: {
+      bookingDate: { stringValue: t10 }, doctor: { stringValue: "Dr. Alert" }, status: { stringValue: "new" }, source: { stringValue: source },
+      patientName: { stringValue: id }, phone: { stringValue: "01711000099" }, serialNo: { integerValue: "7" }, age: { integerValue: "40" },
+      createdAt: { timestampValue: createdAt }, ...extra } })
+  });
+  if (r.code !== 200) throw new Error("seed failed " + r.body);
+}
+seedNew("OldOne", ago(20), "online");
+seedNew("AlertOne", ago(9), "online");
+seedNew("WalkIn", ago(8), "manual");
+seedNew("Binned", ago(7), "online", { deletedAt: { timestampValue: ago(6) } });
+const alertProps = { ...baseProps, ALERT_LAST: ago(10), ALERT_TO: "reception@cc.test" };
+const alerts = [];
+const aScript = loadScript(alertProps, alerts);
+const got = aScript.checkNewBookings();
+ok(alerts.length === 1 && got.length === 1 && got[0].patientName === "AlertOne", "alert for the one new online booking only (" + got.map(g => g.patientName) + ")");
+ok(alerts[0].to === "reception@cc.test" && /AlertOne/.test(alerts[0].subject) && /#৭/.test(alerts[0].subject), "alert goes to ALERT_TO with name and serial — " + alerts[0].subject);
+ok(/01711-000099/.test(alerts[0].htmlBody) && /tel:\+8801711000099/.test(alerts[0].htmlBody), "alert has a tap-to-call phone number");
+aScript.checkNewBookings();
+ok(alerts.length === 1, "no repeat alert on the next run");
+seedNew("Two-A", new Date(Date.now() + 1000).toISOString(), "online");
+seedNew("Two-B", new Date(Date.now() + 2000).toISOString(), "online");
+aScript.checkNewBookings();
+ok(alerts.length === 2 && /২ টি নতুন সিরিয়াল/.test(alerts[1].subject) && /Two-A/.test(alerts[1].htmlBody) && /Two-B/.test(alerts[1].htmlBody), "bookings in the same minute share one email");
+ok(Object.keys(cache).includes("idToken"), "sign-in token is cached between runs");
 
 // ---- failures ----
 const expectThrow = (props, re, msg) => {

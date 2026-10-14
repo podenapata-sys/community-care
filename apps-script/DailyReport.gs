@@ -12,7 +12,9 @@
  *     REPORT_PASSWORD  its password
  *     REPORT_TO        recipients, comma-separated
  *     DASHBOARD_URL    optional, link shown in the email
+ *     ALERT_TO         optional, who gets new-booking alerts (default REPORT_TO)
  *   Then run setup() once, and testReport() to receive a sample now.
+ *   For an email on every new online booking, run setupAlerts() once.
  */
 
 var TZ = 'Asia/Dhaka';
@@ -181,4 +183,102 @@ function bnDate_(iso) {
 
 function esc_(s) {
   return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+}
+
+/* ======================================================= new-booking alerts
+ * Every minute: emails each new ONLINE booking (name, phone, doctor, serial)
+ * to ALERT_TO (defaults to REPORT_TO), so reception/owner get a phone
+ * notification from the Gmail app. Reception-added bookings are not alerted.
+ * Run setupAlerts() once to start, stopAlerts() to stop.
+ */
+
+/** Run once: starts the every-minute alert check (replacing any old one). */
+function setupAlerts() {
+  stopAlerts();
+  PropertiesService.getScriptProperties().setProperty('ALERT_LAST', new Date().toISOString());
+  ScriptApp.newTrigger('checkNewBookings').timeBased().everyMinutes(1).create();
+  Logger.log('Booking alerts on: new online bookings are emailed within about a minute.');
+}
+
+function stopAlerts() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'checkNewBookings') ScriptApp.deleteTrigger(t);
+  });
+}
+
+function checkNewBookings() {
+  var cfg = config_();
+  var props = PropertiesService.getScriptProperties();
+  var since = props.getProperty('ALERT_LAST') || new Date(Date.now() - 5 * 60e3).toISOString();
+  var rows = queryNewBookings_(cfg, cachedToken_(cfg), since);
+  if (!rows.length) return [];
+  // Remember the newest one first, so a mail failure never re-sends old alerts in a loop.
+  props.setProperty('ALERT_LAST', rows[rows.length - 1].createdAt);
+
+  var fresh = rows.filter(function (r) { return r.source === 'online' && !r.deleted; });
+  if (!fresh.length) return [];
+  if (MailApp.getRemainingDailyQuota() < 2) { Logger.log('Mail quota used up today; skipped ' + fresh.length + ' alerts.'); return fresh; }
+
+  // One email per check: if several bookings arrive in the same minute they share one mail (saves the daily quota).
+  var first = fresh[0];
+  MailApp.sendEmail({
+    to: props.getProperty('ALERT_TO') || cfg.to,
+    subject: fresh.length === 1
+      ? '🔔 নতুন সিরিয়াল: ' + first.patientName + ' → ' + first.doctor + ' (#' + bn_(first.serialNo) + ', ' + bnDate_(first.date) + ')'
+      : '🔔 ' + bn_(fresh.length) + ' টি নতুন সিরিয়াল এসেছে',
+    htmlBody: renderAlertHtml_(fresh, cfg.dashboardUrl),
+    name: 'Community Care সিরিয়াল'
+  });
+  return fresh;
+}
+
+/** The sign-in token lasts an hour; reuse it so the every-minute check stays fast. */
+function cachedToken_(cfg) {
+  var cache = CacheService.getScriptCache();
+  var t = cache.get('idToken');
+  if (!t) { t = signIn_(cfg); cache.put('idToken', t, 50 * 60); }
+  return t;
+}
+
+/** Bookings created after `sinceIso`, oldest first. */
+function queryNewBookings_(cfg, token, sinceIso) {
+  var url = cfg.firestoreBase + '/v1/projects/' + cfg.projectId + '/databases/(default)/documents:runQuery';
+  var res = UrlFetchApp.fetch(url, {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { Authorization: 'Bearer ' + token },
+    payload: JSON.stringify({ structuredQuery: {
+      from: [{ collectionId: 'bookings' }],
+      where: { fieldFilter: { field: { fieldPath: 'createdAt' }, op: 'GREATER_THAN', value: { timestampValue: sinceIso } } },
+      orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'ASCENDING' }],
+      limit: 50
+    } })
+  });
+  if (res.getResponseCode() !== 200) {
+    if (res.getResponseCode() === 401) CacheService.getScriptCache().remove('idToken');
+    throw new Error('Firestore query failed: ' + res.getContentText().slice(0, 300));
+  }
+  return JSON.parse(res.getContentText()).filter(function (e) { return e.document; }).map(function (e) {
+    var f = e.document.fields || {};
+    var s = function (k) { return f[k] && f[k].stringValue != null ? f[k].stringValue : ''; };
+    var n = function (k) { return f[k] && f[k].integerValue != null ? +f[k].integerValue : null; };
+    return { patientName: s('patientName'), phone: s('phone'), doctor: s('doctor'), date: s('bookingDate'), note: s('note'),
+      source: s('source'), serialNo: n('serialNo'), age: n('age'), createdAt: f.createdAt.timestampValue,
+      deleted: !!(f.deletedAt && f.deletedAt.timestampValue) };
+  });
+}
+
+function renderAlertHtml_(rows, dashboardUrl) {
+  var cards = rows.map(function (r) {
+    var phone = r.phone ? r.phone.slice(0, 5) + '-' + r.phone.slice(5) : '—';
+    return '<div style="background:#fff;border:1px solid #e3e7f2;border-radius:10px;padding:12px 14px;margin:0 0 10px">' +
+      '<div style="font-size:13px;color:#5b6285">' + esc_(r.doctor) + ' · ' + bnDate_(r.date) + '</div>' +
+      '<div style="font-size:18px;font-weight:700;color:#0d2470;margin:2px 0">সিরিয়াল #' + bn_(r.serialNo) + ' — ' + esc_(r.patientName) +
+        (r.age != null ? ' <span style="font-weight:400;font-size:14px;color:#5b6285">(' + bn_(r.age) + ' বছর)</span>' : '') + '</div>' +
+      '<div style="font-size:15px">📞 ' + (r.phone ? '<a href="tel:+88' + esc_(r.phone) + '" style="color:#1d3ea6">' + esc_(phone) + '</a>' : '—') + '</div>' +
+      (r.note ? '<div style="font-size:13px;color:#3c4266;margin-top:4px">📝 ' + esc_(r.note) + '</div>' : '') + '</div>';
+  }).join('');
+  return '<div style="font-family:\'Hind Siliguri\',\'Noto Sans Bengali\',Arial,sans-serif;max-width:520px;margin:auto;color:#14183a;background:#f4f6fb;padding:14px;border-radius:12px">' +
+    '<div style="font-size:15px;font-weight:700;color:#0d2470;margin:0 0 10px">🔔 ওয়েবসাইট থেকে নতুন সিরিয়াল</div>' + cards +
+    (dashboardUrl ? '<a href="' + esc_(dashboardUrl) + '" style="display:inline-block;background:#13b6e2;color:#04263a;padding:9px 14px;border-radius:8px;text-decoration:none;font-weight:600">ড্যাশবোর্ডে কনফার্ম করুন</a>' : '') +
+    '</div>';
 }
