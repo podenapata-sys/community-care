@@ -5,6 +5,7 @@
     "location": "asia-south1"
   },
   "hosting": {
+    "site": "community-care-khulna-2a364",
     "public": ".",
     "ignore": [
       "firebase.json",
@@ -20,13 +21,37 @@
     ],
     "cleanUrls": true,
     "headers": [
-      { "source": "/dashboard/**", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
-      { "source": "**/*.@(png|jpg|svg|webp)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }] }
+      {
+        "source": "/dashboard/**",
+        "headers": [
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex, nofollow"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(png|jpg|svg|webp)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=604800"
+          }
+        ]
+      }
     ]
   },
   "emulators": {
-    "firestore": { "host": "127.0.0.1", "port": 8080 },
-    "auth": { "host": "127.0.0.1", "port": 9099 },
-    "ui": { "enabled": false }
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": 8080
+    },
+    "auth": {
+      "host": "127.0.0.1",
+      "port": 9099
+    },
+    "ui": {
+      "enabled": false
+    }
   }
 }
