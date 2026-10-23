@@ -78,34 +78,47 @@ export async function createBooking(row, source = "online") {
 }
 
 /* ------------------------------------------------------------- staff only */
-async function isStaff(user) {
-  if (!user) return false;
-  const s = await fs.getDoc(fs.doc(db, "staff", user.uid)).catch(() => null);
-  return !!(s && s.exists());
+// Who is signed in: { role: "staff" } (full access), { role: "doctor", doctor } (own patients only), or null.
+let myDoctor = null;
+async function roleOf(user) {
+  myDoctor = null;
+  if (!user) return null;
+  const get = col => fs.getDoc(fs.doc(db, col, user.uid)).catch(() => null);
+  const s = await get("staff");
+  if (s && s.exists()) return { role: "staff" };
+  const d = await get("doctors");
+  if (d && d.exists() && d.data().doctor) { myDoctor = d.data().doctor; return { role: "doctor", doctor: myDoctor }; }
+  return null;
 }
+
+// A doctor's queries must ask only for their own patients (the rules refuse anything wider).
+const bookingsQuery = (...where) => fs.query(fs.collection(db, "bookings"),
+  ...(myDoctor ? [fs.where("doctor", "==", myDoctor)] : []), ...where);
 
 export async function signIn(email, password) {
   const a = await getAuthApi();
   const cred = await a.signInWithEmailAndPassword(auth, email, password);
-  if (!(await isStaff(cred.user))) { await a.signOut(auth); throw new Error("not_staff"); }
+  const role = await roleOf(cred.user);
+  if (!role) { await a.signOut(auth); throw new Error("not_staff"); }
+  return role;
 }
 
-export async function signOut() { const a = await getAuthApi(); await a.signOut(auth); }
+export async function signOut() { const a = await getAuthApi(); myDoctor = null; await a.signOut(auth); }
 
-// Resolves true if a staff member is already signed in on this browser.
+// Resolves to the signed-in role (see roleOf) if someone is already signed in on this browser.
 export async function session() {
   const a = await getAuthApi();
   const user = await new Promise(res => { const off = a.onAuthStateChanged(auth, u => { off(); res(u); }); });
-  return isStaff(user);
+  return roleOf(user);
 }
 
 export async function listDay(date) {
-  const q = fs.query(fs.collection(db, "bookings"), fs.where("bookingDate", "==", date));
+  const q = bookingsQuery(fs.where("bookingDate", "==", date));
   return live((await fs.getDocs(q)).docs.map(toRow));
 }
 
 export async function listRange(from, to) {
-  const q = fs.query(fs.collection(db, "bookings"), fs.where("bookingDate", ">=", from), fs.where("bookingDate", "<=", to));
+  const q = bookingsQuery(fs.where("bookingDate", ">=", from), fs.where("bookingDate", "<=", to));
   return live((await fs.getDocs(q)).docs.map(toRow));
 }
 
@@ -118,7 +131,7 @@ export async function addManual(row) {
 
 // Earlier bookings for a phone number (newest first) — for returning-patient auto-fill.
 export async function findByPhone(phone) {
-  const q = fs.query(fs.collection(db, "bookings"), fs.where("phone", "==", phone));
+  const q = bookingsQuery(fs.where("phone", "==", phone));
   return live((await fs.getDocs(q)).docs.map(toRow))
     .sort((a, b) => b.booking_date.localeCompare(a.booking_date) || b.created_at.localeCompare(a.created_at))
     .slice(0, 10);
@@ -145,7 +158,7 @@ export async function restore(id) {
 }
 
 export async function listTrash() {
-  const q = fs.query(fs.collection(db, "bookings"), fs.where("deletedAt", ">", binCutoff()));
+  const q = bookingsQuery(fs.where("deletedAt", ">", binCutoff()));
   return (await fs.getDocs(q)).docs.map(toRow).sort((a, b) => b.deleted_at.localeCompare(a.deleted_at));
 }
 
@@ -160,7 +173,7 @@ export async function purgeExpired() {
 
 // Calls cb(row) for every booking created after this moment; onState(true/false) for the live dot.
 export function onNewBookings(cb, onState) {
-  const q = fs.query(fs.collection(db, "bookings"), fs.where("createdAt", ">", fs.Timestamp.now()));
+  const q = bookingsQuery(fs.where("createdAt", ">", fs.Timestamp.now()));
   return fs.onSnapshot(q, snap => {
     onState && onState(true);
     snap.docChanges().forEach(ch => { if (ch.type === "added") cb(toRow(ch.doc)); });

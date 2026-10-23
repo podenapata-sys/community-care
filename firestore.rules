@@ -7,6 +7,8 @@ rules_version = '2';
 //   Staff (signed in AND listed in /staff/{uid}): read bookings, add manual
 //     bookings, change status / fee, move a booking to the recycle bin and back.
 //     Permanent delete only after 30 days in the bin.
+//   Doctors (signed in AND listed in /doctors/{uid} with their name): read only
+//     their own bookings and mark them arrived.
 //   Reporters (signed in AND listed in /reporters/{uid}): read bookings only —
 //     used by the daily report email script.
 //
@@ -26,6 +28,15 @@ service cloud.firestore {
     // Read-only accounts (e.g. the daily report script) — listed in /reporters/{uid}.
     function isReader() {
       return isStaff() || (request.auth != null && exists(path('reporters', request.auth.uid)));
+    }
+
+    // Doctor accounts — listed in /doctors/{uid} with the doctor's name exactly as
+    // stored on bookings. They see and update only their own patients.
+    function isDoctor() {
+      return request.auth != null && exists(path('doctors', request.auth.uid));
+    }
+    function myDoctor() {
+      return get(path('doctors', request.auth.uid)).data.doctor;
     }
 
     function optString(b, k, max) {
@@ -90,7 +101,15 @@ service cloud.firestore {
              && !('fee' in request.resource.data) && !('paid' in request.resource.data)
              && withinDailyLimit(request.resource.data))
             || (request.resource.data.source == 'manual' && isStaff()));
-      allow read: if isReader();
+      allow read: if isReader() || (isDoctor() && resource.data.doctor == myDoctor());
+      // A doctor may only mark their own (not deleted) patient as arrived.
+      allow update: if isDoctor() && !isStaff()
+        && resource.data.doctor == myDoctor()
+        && resource.data.get('deletedAt', null) == null
+        && resource.data.status in ['new', 'confirmed']
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.status == 'arrived'
+        && request.resource.data.updatedAt == request.time;
       allow update: if isStaff()
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['status', 'updatedAt', 'fee', 'paid', 'deletedAt', 'deletedBy'])
@@ -120,6 +139,11 @@ service cloud.firestore {
 
     // Read-only report accounts — managed only from the Firebase console.
     match /reporters/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Doctor accounts — managed only from the Firebase console.
+    match /doctors/{uid} {
       allow get: if request.auth != null && request.auth.uid == uid;
     }
 

@@ -130,6 +130,36 @@ await check("public cannot purge an expired bin entry", assertFails(deleteDoc(do
 await check("reporter cannot purge an expired bin entry", assertFails(deleteDoc(doc(botDbEarly, "bookings", "expired2"))));
 await check("staff can purge after 30 days in the bin", assertSucceeds(deleteDoc(doc(staffDb, "bookings", "expired1"))));
 
+// ---- doctor logins (own patients only) ----
+await env.withSecurityRulesDisabled(async ctx => {
+  const admin = ctx.firestore();
+  await setDoc(doc(admin, "doctors/doc1"), { doctor: "Dr. Test" });
+  await setDoc(doc(admin, "doctors/doc2"), { doctor: "Dr. Nobody" });
+});
+const docDb = env.authenticatedContext("doc1", { email: "drtest@test" }).firestore();
+const bk = collection(docDb, "bookings");
+const upd = (db, id, data) => updateDoc(doc(db, "bookings", id), { ...data, updatedAt: serverTimestamp() });
+await check("doctor can list own patients for a day", assertSucceeds(getDocs(query(bk, where("doctor", "==", "Dr. Test"), where("bookingDate", "==", tomorrow)))));
+await check("doctor can list own patients for a range", assertSucceeds(getDocs(query(bk, where("doctor", "==", "Dr. Test"), where("bookingDate", ">=", tomorrow), where("bookingDate", "<=", tomorrow)))));
+await check("doctor cannot list everyone's patients", assertFails(getDocs(query(bk, where("bookingDate", "==", tomorrow)))));
+await check("doctor cannot list another doctor's patients", assertFails(getDocs(query(bk, where("doctor", "==", "Dr. Other")))));
+await check("doctor can open own booking", assertSucceeds(getDoc(doc(docDb, "bookings", first.id))));
+await check("doctor cannot open another doctor's booking", assertFails(getDoc(doc(docDb, "bookings", other.id))));
+await check("doctor can mark own patient arrived", assertSucceeds(upd(docDb, second.id, { status: "arrived" })));
+await check("doctor cannot undo arrived", assertFails(upd(docDb, second.id, { status: "new" })));
+await check("doctor cannot confirm", assertFails(upd(docDb, manual.id, { status: "confirmed" })));
+await check("doctor cannot cancel", assertFails(upd(docDb, manual.id, { status: "cancelled" })));
+await check("doctor cannot record a fee", assertFails(upd(docDb, manual.id, { fee: 800, paid: true })));
+await check("doctor cannot move to the bin", assertFails(upd(docDb, manual.id, { deletedAt: serverTimestamp(), deletedBy: "drtest@test" })));
+await check("doctor cannot mark another doctor's patient", assertFails(upd(docDb, other.id, { status: "arrived" })));
+await check("doctor cannot add a serial", assertFails(book(docDb, { source: "manual", phone: "01788888886" })));
+await check("doctor cannot permanently delete", assertFails(deleteDoc(doc(docDb, "bookings", "expired2"))));
+await check("doctor can read own doctor link", assertSucceeds(getDoc(doc(docDb, "doctors/doc1"))));
+await check("doctor cannot read other doctor links", assertFails(getDoc(doc(docDb, "doctors/doc2"))));
+await check("doctor is not staff", assertFails(getDoc(doc(docDb, "staff/staff1"))));
+const doc2Db = env.authenticatedContext("doc2", { email: "nobody@test" }).firestore();
+await check("unlinked doctor sees nothing of Dr. Test", assertFails(getDocs(query(collection(doc2Db, "bookings"), where("doctor", "==", "Dr. Test")))));
+
 await check("staff cannot delete", assertFails(deleteDoc(doc(staffDb, "bookings", first.id))));
 await check("staff cannot add themselves new staff", assertFails(setDoc(doc(staffDb, "staff/newguy"), { name: "x" })));
 

@@ -26,6 +26,12 @@ async function makeStaff(uid) {
     body: JSON.stringify({ fields: { name: { stringValue: "Reception" } } }) });
 }
 
+async function makeDoctor(uid, doctor) {
+  await fetch(`http://127.0.0.1:8080/v1/projects/${PROJECT}/databases/(default)/documents/doctors/${uid}`, {
+    method: "PATCH", headers: { "Content-Type": "application/json", Authorization: "Bearer owner" },
+    body: JSON.stringify({ fields: { doctor: { stringValue: doctor } } }) });
+}
+
 async function page(browser) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   await ctx.route("https://www.gstatic.com/firebasejs/**", r => r.fulfill({ contentType: "text/javascript", body: `export * from "${SITE}/__sdk/all.js";` }));
@@ -144,7 +150,35 @@ async function bookOnline(p, name, phone, docIndex = 0) {
   await dash.click(".tab[data-tab=reports]"); await dash.waitForTimeout(1500);
   ok(/৪/.test(await dash.textContent("#tiles")), "reports tiles render");
 
-  // 12. Anti-spam: 4th booking for one phone on one day is refused
+  // 12. Doctor login: only own patients, only "★ এসেছেন"
+  await makeDoctor(await signUp("doctor@cc.test", "secret123"), docName);
+  await makeDoctor(await signUp("doctor2@cc.test", "secret123"), "Dr. Nobody Here");
+  const drPage = await page(browser);
+  await drPage.goto(SITE + "/dashboard/index.html"); await drPage.waitForTimeout(800);
+  await drPage.fill("#lEmail", "doctor@cc.test"); await drPage.fill("#lPass", "secret123");
+  await drPage.click("#loginForm button[type=submit]");
+  await drPage.waitForSelector("#appView:not(.hidden)", { timeout: 15000 });
+  await drPage.click("#nextDay"); await drPage.waitForSelector("#list .row", { timeout: 15000 });
+  ok(await drPage.locator("#list .row").count() === 4, "doctor sees their 4 patients");
+  ok(await drPage.locator("#addBtn").isHidden() && await drPage.locator(".tab[data-tab=bin]").isHidden(), "doctor has no add button or bin");
+  const otherActs = await drPage.locator("#list [data-act]:not([data-act=arrived])").count();
+  ok(otherActs === 0 && await drPage.locator("#list [data-act=arrived]").count() > 0, "doctor rows show only ★ এসেছেন (" + otherActs + " other buttons)");
+  ok((await drPage.textContent("#roleBadge")).includes(docName), "doctor name badge shown");
+  const drRow = drPage.locator("#list .row", { has: drPage.locator("[data-act=arrived]") }).first();
+  const drRowId = await drRow.getAttribute("data-id");
+  await drRow.locator("[data-act=arrived]").click(); await drPage.waitForTimeout(1500);
+  await drPage.reload(); await drPage.waitForSelector("#appView:not(.hidden)", { timeout: 15000 });
+  await drPage.click("#nextDay"); await drPage.waitForSelector("#list .row", { timeout: 15000 });
+  ok(/এসেছেন/.test(await drPage.textContent(`#list .row[data-id="${drRowId}"] .status`)), "doctor's ★ এসেছেন persisted");
+  await drPage.click("#logoutBtn"); await drPage.waitForSelector("#loginView:not(.hidden)", { timeout: 15000 });
+  await drPage.fill("#lEmail", "doctor2@cc.test"); await drPage.fill("#lPass", "secret123");
+  await drPage.click("#loginForm button[type=submit]");
+  await drPage.waitForSelector("#appView:not(.hidden)", { timeout: 15000 });
+  await drPage.click("#nextDay"); await drPage.waitForTimeout(2000);
+  ok(await drPage.locator("#list .row").count() === 0, "another doctor sees none of these patients");
+  ok(!drPage.errors.length, "doctor view: no page errors " + JSON.stringify(drPage.errors));
+
+  // 13. Anti-spam: 4th booking for one phone on one day is refused
   await bookOnline(site, "স্প্যাম", "01799000009", 1); await bookOnline(site, "স্প্যাম", "01799000009", 2);
   await bookOnline(site, "স্প্যাম", "01799000009", 3);
   const m4 = await bookOnline(site, "স্প্যাম", "01799000009", 4);

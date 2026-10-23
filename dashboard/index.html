@@ -110,7 +110,10 @@
     .toolbar .right { margin-left: 0; width: 100%; } .toolbar .right .btn { flex: 1; }
   }
   .tab { white-space: nowrap; }
-  @media (max-width: 480px) { .bar { gap: 6px; padding: 0 10px; } .tab { padding: 8px 8px; } .tab .tl { display: none; } .badge-demo { display: none; } .bar img { height: 26px; } #soundBtn, #logoutBtn { padding: 6px 8px; } }
+  /* Doctor login: own patients only, no admin controls */
+  .doctor-mode #addBtn, .doctor-mode #fDoctor, .doctor-mode #simBtn, .doctor-mode .tab[data-tab=bin] { display: none !important; }
+  .badge-role { background: var(--s-conf-bg); color: var(--s-conf); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (max-width: 480px) { .bar { gap: 6px; padding: 0 10px; } .tab { padding: 8px 8px; } .tab .tl { display: none; } .badge-demo, .badge-role { display: none !important; } .bar img { height: 26px; } #soundBtn, #logoutBtn { padding: 6px 8px; } }
 
   /* ---------- reports ---------- */
   .tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 14px; }
@@ -209,6 +212,7 @@
       </nav>
       <div class="sp"></div>
       <span class="badge-demo hidden" id="demoBadge">ডেমো ডেটা</span>
+      <span class="badge-role hidden" id="roleBadge"></span>
       <span class="live off" id="liveDot"><i></i><span>লাইভ</span></span>
       <button class="btn btn-ghost btn-sm" id="soundBtn" title="শব্দ চালু/বন্ধ">🔔</button>
       <button class="btn btn-ghost btn-sm" id="logoutBtn">লগআউট</button>
@@ -384,6 +388,8 @@ const DemoStore = (() => {
     return out;
   }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(rows)); } catch (e) {} };
+  let demoDoctor = null;
+  const mine = r => !r.deleted_at && (!demoDoctor || r.doctor === demoDoctor);
   const nextSerial = (date, doctor) => 1 + Math.max(0, ...rows.filter(r => r.booking_date === date && r.doctor === doctor).map(r => r.serial_no));
   return {
     demo: true,
@@ -391,11 +397,12 @@ const DemoStore = (() => {
       try { rows = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { rows = null; }
       if (!Array.isArray(rows) || !rows.length) { rows = seedData(); save(); }
     },
-    async signIn() { return true; },
-    async session() { return false; },
+    // Demo of the doctor login: dashboard/?doctor=<exact doctor name>
+    async signIn() { demoDoctor = new URLSearchParams(location.search).get("doctor"); return demoDoctor ? { role: "doctor", doctor: demoDoctor } : { role: "staff" }; },
+    async session() { return null; },
     async signOut() {},
-    async listDay(date) { return rows.filter(r => !r.deleted_at && r.booking_date === date); },
-    async listRange(from, to) { return rows.filter(r => !r.deleted_at && r.booking_date >= from && r.booking_date <= to); },
+    async listDay(date) { return rows.filter(r => mine(r) && r.booking_date === date); },
+    async listRange(from, to) { return rows.filter(r => mine(r) && r.booking_date >= from && r.booking_date <= to); },
     async softDelete(id) { return this.update(id, { deleted_at: new Date().toISOString(), deleted_by: "demo@reception" }); },
     async restore(id) { return this.update(id, { deleted_at: null, deleted_by: null }); },
     async listTrash() { const cut = Date.now() - BIN_DAYS * 864e5; return rows.filter(r => r.deleted_at && Date.parse(r.deleted_at) > cut).sort((a, b) => b.deleted_at.localeCompare(a.deleted_at)); },
@@ -448,7 +455,8 @@ const FireStore = (() => {
 const store = LIVE ? FireStore : DemoStore;
 
 /* ================================================================ state */
-const state = { date: dhakaToday(), doctor: "", search: "", status: "", rows: [], unseen: 0, sound: true, tab: "serials", flash: new Set() };
+const state = { date: dhakaToday(), doctor: "", search: "", status: "", rows: [], unseen: 0, sound: true, tab: "serials", flash: new Set(), role: "staff", myDoctor: null };
+const isDoctorView = () => state.role === "doctor";
 try { state.sound = localStorage.getItem("cc-sound") !== "off"; } catch (e) {}
 
 /* ================================================================ alerts */
@@ -480,6 +488,7 @@ function setLive(on) { $("#liveDot").classList.toggle("off", !on); }
 
 function onNewBooking(row) {
   if (state.rows.some(r => r.id === row.id)) return;
+  if (isDoctorView() && row.doctor !== state.myDoctor) return;   // a doctor hears only about their own patients
   if (row.source === "manual") {   // added at reception: show it, but no alarm
     if (row.booking_date === state.date) { state.rows.push(row); renderSerials(); }
     return;
@@ -524,6 +533,7 @@ function waLink(r) {
 
 // "৳৮০০ · বাকি" / "৳৮০০ · আদায় ✓". A paid pill is a button that offers to undo the payment.
 function feePill(r) {
+  if (r.paid && isDoctorView()) return `<br><span class="fee paid">${r.fee != null ? taka(r.fee) + " · " : ""}আদায় ✓</span>`;
   if (r.paid) return `<br><button type="button" class="fee paid" data-act="unpay" title="আদায় বাতিল করতে চাপুন">${r.fee != null ? taka(r.fee) + " · " : ""}আদায় ✓</button>`;
   if (r.fee != null && r.status !== "cancelled") return `<br><span class="fee due">${taka(r.fee)} · বাকি</span>`;
   return "";
@@ -553,13 +563,13 @@ function renderSerials() {
         <div class="who"><b>${esc(r.patient_name)}</b>${r.phone ? `<a href="tel:+88${esc(r.phone)}">📞 ${esc(fmtPhone(r.phone))}</a>` : `<span class="nophone">ফোন নেই</span>`}${r.age != null ? ` <small>· ${bn(r.age)} বছর</small>` : ""}${feePill(r)}</div>
         <div class="meta"><small>এসেছে ${timeBn(r.created_at)}</small><span class="src">${r.source === "manual" ? "রিসেপশন" : "অনলাইন"}</span>${r.note ? `<br><small>📝 ${esc(r.note)}</small>` : ""}</div>
         <div class="stcell"><span class="status st-${r.status}">${STATUS[r.status].icon} ${STATUS[r.status].bn}</span></div>
-        <div class="acts">
+        <div class="acts">${isDoctorView() ? (r.status === "new" || r.status === "confirmed" ? `<button class="btn btn-ghost btn-sm" data-act="arrived">★ এসেছেন</button>` : "") : `
           ${r.status !== "cancelled" && r.phone ? `<a class="btn btn-wa btn-sm" href="${waLink(r)}" target="_blank" rel="noopener" data-act="wa">WhatsApp কনফার্ম</a>` : ""}
           ${r.status === "new" ? `<button class="btn btn-ghost btn-sm" data-act="confirmed">✓ কনফার্ম</button>` : ""}
           ${r.status === "new" || r.status === "confirmed" ? `<button class="btn btn-ghost btn-sm" data-act="arrived">★ এসেছেন</button>` : ""}
           ${r.status !== "cancelled" && !r.paid ? `<button class="btn btn-ghost btn-sm" data-act="pay">💳 ফি আদায়</button>` : ""}
           ${r.status !== "cancelled" ? `<button class="btn btn-ghost btn-sm" data-act="cancelled">✕ বাতিল</button>` : `<button class="btn btn-ghost btn-sm" data-act="new">↺ ফিরিয়ে আনুন</button>`}
-          <button class="btn btn-ghost btn-sm" data-act="del" title="মুছুন (৩০ দিন বিনে থাকবে)" aria-label="মুছুন">🗑</button>
+          <button class="btn btn-ghost btn-sm" data-act="del" title="মুছুন (৩০ দিন বিনে থাকবে)" aria-label="মুছুন">🗑</button>`}
         </div>
       </div>`).join("")}
     </div>`).join("");
@@ -873,7 +883,12 @@ $("#soundBtn").addEventListener("click", () => {
 $("#simBtn").addEventListener("click", () => DemoStore.simulate());
 $("#logoutBtn").addEventListener("click", async () => { await store.signOut(); location.reload(); });
 
-async function enterApp() {
+async function enterApp(role) {
+  state.role = role && role.role === "doctor" ? "doctor" : "staff";
+  state.myDoctor = state.role === "doctor" ? role.doctor : null;
+  document.body.classList.toggle("doctor-mode", isDoctorView());
+  if (isDoctorView()) { state.doctor = state.myDoctor; $("#roleBadge").textContent = "👨‍⚕️ " + state.myDoctor; }
+  $("#roleBadge").classList.toggle("hidden", !isDoctorView());
   $("#loginView").classList.add("hidden"); $("#appView").classList.remove("hidden");
   $("#demoBadge").classList.toggle("hidden", !store.demo); $("#simBtn").classList.toggle("hidden", !store.demo);
   doctorOptions($("#fDoctor"), true); doctorOptions($("#aDoctor"), false); paintSound();
@@ -885,20 +900,20 @@ async function enterApp() {
 
 $("#loginForm").addEventListener("submit", async e => {
   e.preventDefault(); $("#loginErr").textContent = "";
-  try { await store.signIn($("#lEmail").value.trim(), $("#lPass").value); await enterApp(); }
+  try { const role = await store.signIn($("#lEmail").value.trim(), $("#lPass").value); await enterApp(role); }
   catch (err) {
     $("#loginErr").textContent = /not_staff/.test(err && err.message)
       ? "এই অ্যাকাউন্টের ড্যাশবোর্ড ব্যবহারের অনুমতি নেই। অ্যাডমিনের সাথে যোগাযোগ করুন।"
       : "লগইন হয়নি: ইমেইল বা পাসওয়ার্ড ভুল।";
   }
 });
-$("#demoBtn").addEventListener("click", enterApp);
+$("#demoBtn").addEventListener("click", async () => enterApp(await store.signIn()));
 
 (async () => {
   $("#liveLogin").classList.toggle("hidden", !LIVE);
   $("#demoLogin").classList.toggle("hidden", LIVE);
   $("#lEmail").required = LIVE; $("#lPass").required = LIVE;
-  try { await store.init(); if (await store.session()) await enterApp(); }
+  try { await store.init(); const role = await store.session(); if (role) await enterApp(role); }
   catch (e) { $("#loginErr").textContent = "সার্ভারের সাথে সংযোগ হয়নি। ইন্টারনেট চেক করুন।"; }
 })();
 </script>
