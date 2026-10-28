@@ -14,4 +14,6 @@ The site looks for these four files. A missing file hides its slot, so the page 
 - To swap in the real hospital photos later, overwrite the file with the same name and run `firebase deploy --only hosting`.
 
 ## Credits
-- (none yet)
+- `hero.jpg`, `about.jpg`, `consult.jpg`: AI-generated placeholders supplied by FS Solutions. Replace them with real hospital photos after the visit.
+- `about.jpg` shows a generic reception, not Community Care's own, so replace it first.
+- `lab.jpg`: not added yet (its banner stays hidden).
