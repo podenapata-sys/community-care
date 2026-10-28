@@ -275,7 +275,30 @@
   .lab-banner { aspect-ratio: 16 / 5; margin-bottom: 28px; }
   .js .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
   .js .reveal.in { opacity: 1; transform: none; }
-  @media (prefers-reduced-motion: reduce) { .js .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
+  /* headings rise in word by word (split in JS; words only, so Bangla conjuncts stay intact) */
+  .w { display: inline-block; overflow: hidden; vertical-align: top; padding: .14em 0; margin: -.14em 0; }
+  .w > span { display: inline-block; }
+  .js .reveal:not(.in) .w > span { transform: translateY(110%); }
+  .js .reveal.in .w > span { transition: transform .85s cubic-bezier(.2,.75,.2,1); transition-delay: calc(var(--i, 0) * 70ms + 120ms); }
+  /* cards in a grid come in one after another */
+  .js .stagger > * { opacity: 0; transform: translateY(24px); }
+  .js .stagger.in > * { opacity: 1; transform: none; transition: opacity .6s ease, transform .6s ease; transition-delay: calc(var(--d, 0) * 80ms); }
+  /* photos settle from a slight zoom */
+  .js .ph-img.reveal img { transform: scale(1.08); transition: transform 1.6s cubic-bezier(.2,.7,.2,1); }
+  .js .ph-img.reveal.in img { transform: none; }
+  /* scrolling department band */
+  .marquee { background: var(--ink-deep); color: #fff; overflow: hidden; padding: 18px 0; border-top: 1px solid rgba(255,255,255,.1); }
+  .marquee-track { display: flex; width: max-content; animation: mq 45s linear infinite; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+  .marquee-track span { display: inline-flex; align-items: center; gap: 22px; padding-right: 22px; font-size: 18px; font-weight: 600; white-space: nowrap; }
+  .marquee-track span::after { content: "✦"; color: #6fdcf6; font-size: 14px; }
+  @keyframes mq { to { transform: translateX(-50%); } }
+  .hero::before { transform: translateY(var(--py, 0px)); }
+  @media (prefers-reduced-motion: reduce) {
+    .js .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; }
+    .js .reveal .w > span, .js .stagger > *, .js .ph-img.reveal img { transform: none !important; opacity: 1 !important; transition: none !important; }
+    .marquee-track { animation: none; } .marquee { overflow-x: auto; } .hero::before { transform: none; }
+  }
 
   @media (max-width: 960px) {
     .hero-grid, .book-grid, .contact-grid, .why-grid { grid-template-columns: 1fr; }
@@ -379,6 +402,8 @@ function imgOk(img) { img.closest(".ph-img").classList.add("ok"); img.closest(".
   </div>
 </section>
 
+<div class="marquee" aria-hidden="true"><div class="marquee-track" id="deptMarquee"></div></div>
+
 <section id="about">
   <div class="wrap">
     <div class="media-row about-row">
@@ -408,7 +433,7 @@ function imgOk(img) { img.closest(".ph-img").classList.add("ok"); img.closest(".
       <a href="#book" class="btn btn-primary"><span data-bn="সিরিয়াল নিন" data-en="Book now"></span><span class="arr">↗</span></a>
     </div>
     <figure class="ph-img lab-banner reveal"><img src="assets/img/lab.jpg" width="1600" height="700" decoding="async" data-bn-alt="ডায়াগনস্টিক ল্যাবে রক্তের নমুনা পরীক্ষা" data-en-alt="Blood samples being tested in the diagnostic lab" alt="" onload="imgOk(this)"></figure>
-    <div class="grid g4" id="servicesGrid"></div>
+    <div class="grid g4 stagger" id="servicesGrid"></div>
   </div>
 </section>
 
@@ -421,7 +446,7 @@ function imgOk(img) { img.closest(".ph-img").classList.add("ok"); img.closest(".
     </div>
     <label class="doc-search"><input type="search" id="docSearch" autocomplete="off" aria-label="ডাক্তার খুঁজুন"></label>
     <div class="chips" id="docFilter"></div>
-    <div class="grid g3" id="doctorsGrid"></div>
+    <div class="grid g3 stagger" id="doctorsGrid"></div>
     <div style="text-align:center;margin-top:28px"><button type="button" class="btn btn-ghost-dark" id="docMore" hidden></button></div>
   </div>
 </section>
@@ -596,6 +621,7 @@ try { lang = localStorage.getItem("cc-lang") || "bn"; } catch (e) {}
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const fmtPhone = p => p.length === 11 ? p.slice(0, 5) + "-" + p.slice(5) : p;
 
+const staggerIndex = grid => [...grid.children].forEach((c, i) => c.style.setProperty("--d", Math.min(i, 8)));
 function renderLists() {
   const two = n => lang === "bn" ? String(n).padStart(2, "0").replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]) : String(n).padStart(2, "0");
   document.getElementById("servicesGrid").innerHTML = CONFIG.services.map((s, i) => `
@@ -702,6 +728,25 @@ document.getElementById("doctors").addEventListener("click", e => {
   }
 });
 
+// Wrap each word of a heading in .w > span so it can rise in; keeps inner markup like .accent.
+function splitWords(el) {
+  let i = 0;
+  const walk = node => [...node.childNodes].forEach(n => {
+    if (n.nodeType === 1) return walk(n);
+    if (n.nodeType !== 3 || !n.textContent.trim()) return;
+    const frag = document.createDocumentFragment();
+    n.textContent.split(/(\s+)/).forEach(part => {
+      if (!part) return;
+      if (/^\s+$/.test(part)) return frag.append(part);
+      const w = document.createElement("span"), inner = document.createElement("span");
+      w.className = "w"; inner.style.setProperty("--i", i++); inner.textContent = part;
+      w.append(inner); frag.append(w);
+    });
+    n.replaceWith(frag);
+  });
+  walk(el);
+}
+
 function applyLang() {
   document.documentElement.lang = lang;
   document.body.classList.toggle("en", lang === "en");
@@ -709,6 +754,9 @@ function applyLang() {
   // Two-tone headings: static markup written in this file (never user input).
   document.querySelectorAll("[data-bnh]").forEach(el => { el.innerHTML = lang === "bn" ? el.dataset.bnh : el.dataset.enh; });
   document.querySelectorAll("[data-bn-alt]").forEach(el => { el.alt = lang === "bn" ? el.dataset.bnAlt : el.dataset.enAlt; });
+  document.querySelectorAll("[data-bnh]").forEach(splitWords);
+  const depts = Object.keys(CONFIG.depts).filter(k => CONFIG.doctors.some(d => d.dept === k)).map(k => `<span>${esc(CONFIG.depts[k][lang])}</span>`).join("");
+  document.getElementById("deptMarquee").innerHTML = depts + depts;
   document.getElementById("langBtn").textContent = lang === "bn" ? "English" : "বাংলা";
   renderLists();
 }
@@ -858,13 +906,29 @@ function runCount(el) {
 }
 (() => {
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!("IntersectionObserver" in window) || reduce) { document.querySelectorAll(".reveal").forEach(e => e.classList.add("in")); return; }
+  if (!("IntersectionObserver" in window) || reduce) { document.querySelectorAll(".reveal, .stagger").forEach(e => e.classList.add("in")); return; }
   const io = new IntersectionObserver(entries => entries.forEach(e => {
     if (!e.isIntersecting) return;
     e.target.classList.add("in"); io.unobserve(e.target);
     e.target.querySelectorAll(".count").forEach(runCount);
   }), { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
-  document.querySelectorAll(".reveal").forEach(e => io.observe(e));
+  document.querySelectorAll(".reveal").forEach(e => {
+    const sibs = [...e.parentElement.children].filter(c => c.classList.contains("reveal"));
+    if (sibs.length > 1) e.style.transitionDelay = (sibs.indexOf(e) % 4) * 90 + "ms";
+    io.observe(e);
+  });
+  const sio = new IntersectionObserver(entries => entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    staggerIndex(e.target); e.target.classList.add("in"); sio.unobserve(e.target);
+  }), { threshold: 0.05 });
+  document.querySelectorAll(".stagger").forEach(g => sio.observe(g));
+  const hero = document.querySelector(".hero");
+  let ticking = false;
+  addEventListener("scroll", () => {
+    if (ticking || scrollY > innerHeight) return;
+    ticking = true;
+    requestAnimationFrame(() => { hero.style.setProperty("--py", scrollY * 0.3 + "px"); ticking = false; });
+  }, { passive: true });
 })();
 // Hide the mobile bottom bar while the booking form is on screen.
 if ("IntersectionObserver" in window) {
