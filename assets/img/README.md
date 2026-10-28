@@ -1,0 +1,17 @@
+# Website photos
+
+The site looks for these four files. A missing file hides its slot, so the page keeps the photo-free layout until a photo is added.
+
+| File | Where it shows | Shape |
+|---|---|---|
+| `hero.jpg` | Top of the page, above the timings card | 16:10, about 1200×750 |
+| `about.jpg` | "About us" section | 4:3, about 1200×900 |
+| `lab.jpg` | Banner above the services cards | wide, about 1600×500 |
+| `consult.jpg` | Beside "Why Community Care" | square, about 1000×1000 |
+
+- Keep each file under 200 KB (squoosh.app, JPG quality about 75).
+- Temporary stock photos must come from Unsplash or Pexels (free for commercial use). Note each source URL and photographer below.
+- To swap in the real hospital photos later, overwrite the file with the same name and run `firebase deploy --only hosting`.
+
+## Credits
+- (none yet)

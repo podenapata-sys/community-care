@@ -261,12 +261,28 @@
   .mbar { display: none; }
 
   /* scroll reveal (only when JS runs; content is visible without JS) */
+  /* photos (assets/img). A missing file hides its slot via imgFail(), leaving the photo-free layout. */
+  .ph-img { margin: 0; border-radius: 24px; overflow: hidden; box-shadow: 0 24px 50px rgba(13,36,112,.16); background: var(--soft); }
+  .ph-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .noimg > .ph-img, .ph-img.noimg { display: none; }
+  .hero-side { display: grid; gap: 18px; }
+  .hero-side .ph-img { aspect-ratio: 16 / 10; border: 1px solid rgba(255,255,255,.18); box-shadow: 0 30px 60px rgba(0,0,0,.25); }
+  .media-row:not(.noimg) { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; margin-bottom: 48px; }
+  .media-row:not(.noimg) > .sec-head { margin: 0; text-align: left; }
+  .about-row .ph-img { aspect-ratio: 4 / 3; }
+  .why-row:not(.noimg) { grid-template-columns: .8fr 1.2fr; align-items: stretch; margin-bottom: 0; }
+  .why-row .ph-img { min-height: 320px; }
+  .lab-banner { aspect-ratio: 16 / 5; margin-bottom: 28px; }
   .js .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
   .js .reveal.in { opacity: 1; transform: none; }
   @media (prefers-reduced-motion: reduce) { .js .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
 
   @media (max-width: 960px) {
     .hero-grid, .book-grid, .contact-grid, .why-grid { grid-template-columns: 1fr; }
+    .hero-side .ph-img { order: 2; }
+    .media-row:not(.noimg), .why-row:not(.noimg) { grid-template-columns: 1fr; gap: 28px; }
+    .why-row .ph-img { min-height: 0; aspect-ratio: 16 / 10; }
+    .lab-banner { aspect-ratio: 16 / 8; }
     .g4, .stats { grid-template-columns: repeat(2, 1fr); }
     .g3 { grid-template-columns: 1fr 1fr; }
     .nav-links { display: none; }
@@ -299,7 +315,8 @@
 
 </head>
 <body>
-<script>document.documentElement.classList.add("js");</script>
+<script>document.documentElement.classList.add("js");
+function imgFail(img) { (img.closest(".media-row") || img.closest(".ph-img")).classList.add("noimg"); }</script>
 
 <header>
   <div class="wrap nav">
@@ -331,7 +348,9 @@
         <a href="#" class="btn btn-ghost js-call" data-bn="📞 কল করুন" data-en="📞 Call Us"></a>
       </div>
     </div>
-    <div class="hero-card reveal">
+    <div class="hero-side reveal">
+    <figure class="ph-img"><img src="assets/img/hero.jpg" width="1200" height="750" fetchpriority="high" data-bn-alt="মোবাইলে ডাক্তারের সিরিয়াল নেওয়া হচ্ছে" data-en-alt="Booking a doctor's appointment on a phone" alt="" onerror="imgFail(this)"></figure>
+    <div class="hero-card">
       <h3 data-bn="🕒 সময়সূচি" data-en="🕒 Timings"></h3>
       <div class="hours-row"><span data-bn="ডাক্তারদের চেম্বার" data-en="Doctors' chambers"></span><span data-bn="বিকাল ৩টা – রাত ৯টা" data-en="3 PM – 9 PM"></span></div>
       <div class="hours-row"><span data-bn="অনলাইন সিরিয়াল" data-en="Online booking"></span><span data-bn="২৪ ঘণ্টা" data-en="24 hours"></span></div>
@@ -339,6 +358,7 @@
         <span data-bn="🚑 জরুরি প্রয়োজনে" data-en="🚑 Emergency"></span>
         <span class="js-emergency-text ph">01XXX-XXXXXX</span>
       </a>
+    </div>
     </div>
   </div>
   <div class="wrap">
@@ -361,10 +381,13 @@
 
 <section id="about">
   <div class="wrap">
+    <div class="media-row about-row">
+    <figure class="ph-img reveal"><img src="assets/img/about.jpg" width="1200" height="900" decoding="async" data-bn-alt="হাসপাতালের পরিচ্ছন্ন রিসেপশন ও অপেক্ষার জায়গা" data-en-alt="Clean hospital reception and waiting area" alt="" onerror="imgFail(this)"></figure>
     <div class="sec-head reveal">
       <span class="eyebrow" data-bn="আমাদের সম্পর্কে" data-en="About us"></span>
       <h2 data-bnh='বিশ্বাস ও আধুনিক চিকিৎসায় <span class="accent">খুলনার পাশে</span>' data-enh='Trusted, modern care <span class="accent">for Khulna</span>'></h2>
       <p data-bn="অভিজ্ঞ বিশেষজ্ঞ ডাক্তার, ডায়াগনস্টিক সেবা আর সহজ অনলাইন সিরিয়াল — রোগীর সময় ও কষ্ট বাঁচাতে সবকিছু এক জায়গায়।" data-en="Experienced specialists, diagnostics and simple online booking — everything in one place to save patients time and trouble."></p>
+    </div>
     </div>
     <div class="stats">
       <div class="stat reveal"><i aria-hidden="true">🩺</i><b class="count js-doc-count" data-suffix="+">39+</b><span data-bn="বিশেষজ্ঞ ডাক্তার" data-en="Specialist doctors"></span></div>
@@ -384,6 +407,7 @@
       </div>
       <a href="#book" class="btn btn-primary"><span data-bn="সিরিয়াল নিন" data-en="Book now"></span><span class="arr">↗</span></a>
     </div>
+    <figure class="ph-img lab-banner reveal"><img src="assets/img/lab.jpg" width="1600" height="700" decoding="async" data-bn-alt="ডায়াগনস্টিক ল্যাবে রক্তের নমুনা পরীক্ষা" data-en-alt="Blood samples being tested in the diagnostic lab" alt="" onerror="imgFail(this)"></figure>
     <div class="grid g4" id="servicesGrid"></div>
   </div>
 </section>
@@ -408,6 +432,8 @@
       <span class="eyebrow" data-bn="কেন কমিউনিটি কেয়ার" data-en="Why Community Care"></span>
       <h2 data-bnh='রোগীর সময় ও সুবিধাই <span class="accent">আমাদের অগ্রাধিকার</span>' data-enh='Your time and comfort <span class="accent">come first</span>'></h2>
     </div>
+    <div class="media-row why-row">
+    <figure class="ph-img reveal"><img src="assets/img/consult.jpg" width="1000" height="1000" decoding="async" data-bn-alt="ডাক্তার রোগীর সাথে কথা বলছেন" data-en-alt="A doctor talking with a patient" alt="" onerror="imgFail(this)"></figure>
     <div class="why-grid">
       <div class="why-item reveal"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v3a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="12" r="2"/></svg></div>
         <div><b data-bn="এক জায়গায় অনেক বিশেষজ্ঞ" data-en="Many specialists, one place"></b><p data-bn="মেডিসিন, শিশু, গাইনি, সার্জারি, কিডনিসহ বিভিন্ন বিভাগের অভিজ্ঞ ডাক্তার।" data-en="Experienced doctors across medicine, pediatrics, gynecology, surgery, nephrology and more."></p></div></div>
@@ -417,6 +443,7 @@
         <div><b data-bn="ডায়াগনস্টিক একই ভবনে" data-en="Diagnostics in the same building"></b><p data-bn="প্যাথলজি ল্যাব ও আল্ট্রাসনোগ্রাম — পরীক্ষার জন্য অন্য কোথাও যেতে হয় না।" data-en="Pathology lab and ultrasonography — no need to go elsewhere for tests."></p></div></div>
       <div class="why-item reveal"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
         <div><b data-bn="আগে থেকেই ফি ও সময় জানুন" data-en="Fees and timings up front"></b><p data-bn="প্রতিটি ডাক্তারের চেম্বারের সময় ও ভিজিট ফি বুকিংয়ের আগেই দেখা যায়।" data-en="Each doctor's chamber time and visit fee are shown before you book."></p></div></div>
+    </div>
     </div>
   </div>
 </section>
@@ -681,6 +708,7 @@ function applyLang() {
   document.querySelectorAll("[data-bn]").forEach(el => { el.textContent = el.dataset[lang]; });
   // Two-tone headings: static markup written in this file (never user input).
   document.querySelectorAll("[data-bnh]").forEach(el => { el.innerHTML = lang === "bn" ? el.dataset.bnh : el.dataset.enh; });
+  document.querySelectorAll("[data-bn-alt]").forEach(el => { el.alt = lang === "bn" ? el.dataset.bnAlt : el.dataset.enAlt; });
   document.getElementById("langBtn").textContent = lang === "bn" ? "English" : "বাংলা";
   renderLists();
 }
