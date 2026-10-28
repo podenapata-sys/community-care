@@ -28,233 +28,278 @@
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* ===== Design system (Lumora-inspired: big two-tone headings, eyebrow chips, dark pill buttons, soft cards) ===== */
   :root {
-    --navy: #0d2470;
-    --indigo: #1d3ea6;
-    --cyan: #13b6e2;
-    --cyan-soft: #e6f7fd;
-    --ink: #14183a;
-    --muted: #5b6285;
-    --bg: #f6f8fc;
-    --card: #ffffff;
-    --line: #e3e7f2;
-    --ok: #12a36b;
-    --radius: 14px;
+    --navy: #0d2470; --ink-deep: #0a1440; --indigo: #1d3ea6; --cyan: #13b6e2; --teal: #0f9fb8;
+    --cyan-soft: #e6f7fd; --ink: #14183a; --muted: #5b6285; --bg: #ffffff; --soft: #f5f7fc;
+    --card: #ffffff; --line: #e6eaf3; --ok: #12a36b;
+    --p1: #eef3ff; --p2: #fff3ea; --p3: #e9f8f4; --p4: #f3eefe;
+    --radius: 20px; --shadow: 0 10px 30px rgba(13,36,112,.08);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
   body {
-    font-family: "Noto Serif Bengali", "Inter", serif;
-    font-optical-sizing: auto; font-variation-settings: "wdth" 100;
-    color: var(--ink); background: var(--bg); line-height: 1.6;
+    font-family: "Noto Serif Bengali", "Inter", serif; font-optical-sizing: auto; font-variation-settings: "wdth" 100;
+    color: var(--ink); background: var(--bg); line-height: 1.65; -webkit-font-smoothing: antialiased;
   }
   body.en { font-family: "Inter", "Noto Serif Bengali", system-ui, sans-serif; }
   a { color: inherit; text-decoration: none; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
-
-  /* Still-to-confirm marker: invisible to patients, outlined when the URL has ?review=1 */
+  img { max-width: 100%; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+  :focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 8px; }
   .review .ph { outline: 2px dashed #f5a524; outline-offset: 2px; border-radius: 4px; }
+  .accent { color: var(--teal); }
+  .on-dark .accent { color: #6fdcf6; }
 
-  /* Header */
-  header { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
-  .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 12px; }
-  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-  .brand img { height: 46px; width: auto; display: block; }
-  .foot-logo { height: 36px; width: auto; display: block; margin-bottom: 8px; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-  .nav-links { display: flex; gap: 22px; font-weight: 500; color: var(--muted); }
-  .nav-links a:hover { color: var(--indigo); }
-  .nav-right { display: flex; gap: 8px; align-items: center; }
-  .lang {
-    border: 1px solid var(--line); background: var(--card); border-radius: 999px;
-    padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; color: var(--navy);
-  }
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    border: 0; border-radius: 10px; padding: 12px 20px; font: inherit; font-weight: 600;
-    cursor: pointer; transition: transform .15s, box-shadow .15s;
-  }
+  /* eyebrow chip */
+  .eyebrow { display: inline-flex; align-items: center; gap: 6px; background: var(--soft); border: 1px solid var(--line);
+    color: var(--navy); font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: 999px; }
+  .eyebrow::before { content: "✳"; color: var(--teal); font-size: 12px; }
+  .on-dark .eyebrow { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.22); color: #fff; }
+  .on-dark .eyebrow::before { color: #6fdcf6; }
+
+  /* buttons: dark pill with an arrow circle */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 999px;
+    padding: 12px 14px 12px 22px; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer;
+    transition: transform .2s, box-shadow .2s, background .2s; white-space: nowrap; }
   .btn:active { transform: scale(.98); }
-  .btn-primary { background: var(--cyan); color: #04263a; }
-  .btn-primary:hover { box-shadow: 0 6px 18px rgba(31,182,232,.35); }
-  .btn-ghost { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); }
-  .btn-sm { padding: 8px 14px; font-size: 14px; }
+  .btn .arr { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; transition: transform .25s; }
+  .btn:hover .arr { transform: rotate(-45deg); }
+  .btn-primary { background: var(--ink-deep); color: #fff; }
+  .btn-primary .arr { background: #fff; color: var(--ink-deep); }
+  .btn-primary:hover { box-shadow: 0 10px 24px rgba(10,20,64,.25); }
+  .btn-light { background: #fff; color: var(--ink-deep); }
+  .btn-light .arr { background: var(--ink-deep); color: #fff; }
+  .btn-ghost { background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.35); padding: 12px 22px; }
+  .btn-ghost:hover { background: rgba(255,255,255,.16); }
+  .btn-ghost-dark { background: #fff; color: var(--navy); border: 1px solid var(--line); padding: 12px 22px; }
+  .btn-ghost-dark:hover { border-color: var(--navy); }
+  .btn-sm { padding: 8px 10px 8px 16px; font-size: 14px; }
+  .btn-sm .arr { width: 24px; height: 24px; }
+  .btn-cyan { background: var(--cyan); color: #04263a; }
 
-  /* Hero */
-  .hero {
-    background: radial-gradient(1200px 500px at 85% 20%, rgba(31,182,232,.35), transparent 60%),
-                linear-gradient(135deg, var(--navy), var(--indigo));
-    color: #fff; padding: 64px 0 72px;
-  }
-  .hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center; }
-  .pill {
-    display: inline-block; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25);
-    padding: 4px 12px; border-radius: 999px; font-size: 13px; margin-bottom: 16px;
-  }
-  .hero h1 { font-size: clamp(30px, 5vw, 48px); line-height: 1.15; margin-bottom: 14px; }
-  .hero p { font-size: 18px; opacity: .9; max-width: 540px; margin-bottom: 26px; }
+  /* section heads */
+  section { padding: 96px 0; }
+  .sec-head { max-width: 720px; margin: 0 auto 48px; text-align: center; }
+  .sec-head.left { margin-left: 0; text-align: left; }
+  .sec-head h2 { font-size: clamp(28px, 4.2vw, 46px); line-height: 1.15; letter-spacing: -.01em; color: var(--ink-deep); margin: 14px 0 12px; font-weight: 700; }
+  .sec-head p { color: var(--muted); font-size: 16px; }
+  .sec-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-bottom: 40px; }
+  .sec-row .sec-head { margin: 0; }
+
+  /* header */
+  header { position: sticky; top: 0; z-index: 30; background: rgba(255,255,255,.88); backdrop-filter: saturate(160%) blur(12px);
+    border-bottom: 1px solid rgba(230,234,243,.8); }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 12px; }
+  .brand img { height: 46px; width: auto; display: block; }
+  .nav-links { display: flex; gap: 6px; font-weight: 500; color: var(--muted); font-size: 15px; }
+  .nav-links a { padding: 8px 14px; border-radius: 999px; transition: background .2s, color .2s; }
+  .nav-links a:hover { background: var(--soft); color: var(--navy); }
+  .nav-right { display: flex; gap: 10px; align-items: center; }
+  .lang { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 13px; cursor: pointer; color: var(--navy); }
+
+  /* hero (dark gradient, no photo) */
+  .hero { position: relative; overflow: hidden; color: #fff; padding: 88px 0 0;
+    background: radial-gradient(900px 520px at 85% 10%, rgba(19,182,226,.38), transparent 60%),
+                radial-gradient(700px 500px at 5% 95%, rgba(29,62,166,.55), transparent 60%),
+                linear-gradient(150deg, #0a1440 0%, #0d2470 55%, #0b3f7a 100%); }
+  .hero::before { content: ""; position: absolute; inset: 0; opacity: .14; pointer-events: none;
+    background-image: radial-gradient(rgba(255,255,255,.9) 1px, transparent 1.2px); background-size: 26px 26px;
+    mask-image: linear-gradient(180deg, #000 0%, transparent 85%); -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 85%); }
+  .hero-grid { position: relative; display: grid; grid-template-columns: 1.2fr .8fr; gap: 48px; align-items: center; padding-bottom: 72px; }
+  .hero h1 { font-size: clamp(34px, 5.6vw, 64px); line-height: 1.12; letter-spacing: -.015em; margin: 20px 0 18px; font-weight: 700; }
+  .hero .lead { font-size: 18px; color: rgba(255,255,255,.82); max-width: 560px; margin-bottom: 30px; }
   .hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
-  .hero-stats { display: flex; gap: 28px; margin-top: 34px; flex-wrap: wrap; }
-  .stat b { display: block; font-size: 26px; }
-  .stat span { font-size: 13px; opacity: .8; }
-  .hero-card {
-    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2);
-    border-radius: 20px; padding: 24px; backdrop-filter: blur(6px);
-  }
-  .hero-card h3 { font-size: 16px; margin-bottom: 14px; }
-  .hours-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.15); font-size: 15px; }
-  .hours-row:last-child { border-bottom: 0; }
-  .emergency {
-    margin-top: 16px; background: #ff4d6d; color: #fff; border-radius: 12px; padding: 14px;
-    display: flex; justify-content: space-between; align-items: center; font-weight: 600; gap: 10px;
-  }
+  .hero-card { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); border-radius: 24px; padding: 26px;
+    backdrop-filter: blur(10px); box-shadow: 0 30px 60px rgba(0,0,0,.18); }
+  .hero-card h3 { font-size: 17px; margin-bottom: 12px; color: #fff; }
+  .hours-row { display: flex; justify-content: space-between; gap: 10px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.14); font-size: 15px; color: rgba(255,255,255,.88); }
+  .hours-row:last-of-type { border-bottom: 0; }
+  .emergency { margin-top: 16px; background: #ff4d6d; color: #fff; border-radius: 16px; padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center; font-weight: 600; gap: 10px; transition: transform .2s; }
+  .emergency:hover { transform: translateY(-2px); }
+  .hero-card .btn { width: 100%; margin-top: 12px; }
+  /* info strip along the bottom of the hero */
+  .strip { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgba(255,255,255,.16); }
+  .strip > * { padding: 26px 24px; display: flex; gap: 14px; align-items: flex-start; color: rgba(255,255,255,.85); font-size: 14px; }
+  .strip > * + * { border-left: 1px solid rgba(255,255,255,.16); }
+  .strip b { display: block; color: #fff; font-size: 18px; margin-bottom: 2px; }
+  .strip svg { width: 30px; height: 30px; flex: none; color: #6fdcf6; }
+  .strip a:hover b { text-decoration: underline; }
 
-  /* Sections */
-  section { padding: 72px 0; }
-  .sec-head { text-align: center; max-width: 620px; margin: 0 auto 40px; }
-  .sec-head .kicker { color: var(--cyan); font-weight: 600; font-size: 14px; letter-spacing: .04em; }
-  .sec-head h2 { font-size: clamp(24px, 3.4vw, 34px); color: var(--navy); margin: 6px 0 8px; }
-  .sec-head p { color: var(--muted); }
+  /* stats */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .stat { border-radius: var(--radius); padding: 28px 24px; background: var(--soft); border: 1px solid var(--line); position: relative; overflow: hidden; }
+  .stat:nth-child(1) { background: var(--p1); } .stat:nth-child(2) { background: var(--p2); }
+  .stat:nth-child(3) { background: var(--p3); } .stat:nth-child(4) { background: var(--p4); }
+  .stat b { display: block; font-size: clamp(38px, 4.5vw, 54px); line-height: 1; color: var(--ink-deep); font-weight: 700; margin-bottom: 10px; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 15px; }
+  .stat i { position: absolute; right: 18px; top: 18px; font-style: normal; font-size: 22px; opacity: .9; }
 
+  /* services: numbered pastel cards */
   .grid { display: grid; gap: 18px; }
   .g4 { grid-template-columns: repeat(4, 1fr); }
   .g3 { grid-template-columns: repeat(3, 1fr); }
-  .card {
-    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 22px; transition: transform .2s, box-shadow .2s;
-  }
-  .card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(30,42,120,.08); }
-  .icon {
-    width: 46px; height: 46px; border-radius: 12px; background: var(--cyan-soft); color: var(--indigo);
-    display: grid; place-items: center; margin-bottom: 14px;
-  }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; transition: transform .25s, box-shadow .25s; }
+  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .svc { border: 0; min-height: 230px; display: flex; flex-direction: column; }
+  .svc:nth-child(4n+1) { background: var(--p1); } .svc:nth-child(4n+2) { background: var(--p2); }
+  .svc:nth-child(4n+3) { background: var(--p3); } .svc:nth-child(4n+4) { background: var(--p4); }
+  .svc .num { font-family: "Inter", sans-serif; font-size: 20px; color: rgba(13,36,112,.45); font-weight: 500; letter-spacing: .02em; }
+  .svc .icon { margin: 18px 0 14px; }
+  .icon { width: 50px; height: 50px; border-radius: 14px; background: #fff; color: var(--indigo); display: grid; place-items: center; box-shadow: 0 4px 12px rgba(13,36,112,.06); }
   .icon svg { width: 24px; height: 24px; }
-  .card h3 { font-size: 17px; color: var(--navy); margin-bottom: 4px; }
+  .card h3 { font-size: 18px; color: var(--ink-deep); margin-bottom: 6px; }
   .card p { font-size: 14px; color: var(--muted); }
 
-  .doc { text-align: center; }
-  .avatar {
-    width: 88px; height: 88px; border-radius: 50%; margin: 0 auto 12px;
-    background: linear-gradient(135deg, var(--cyan-soft), #dfe3fb); display: grid; place-items: center;
-    color: var(--indigo); font-size: 30px; font-weight: 700;
-  }
-  .doc .spec { color: var(--cyan); font-weight: 600; font-size: 14px; }
-  .doc .deg { font-size: 12px; color: var(--muted); margin: 2px auto 4px; display: inline-block; }
-  .doc { display: flex; flex-direction: column; align-items: center; }
-  .doc .work { font-size: 13px; color: var(--muted); margin: 8px 0 6px; }
-  .doc .btn { margin-top: auto; }
-  .doc { position: relative; }
-  .doc.hl { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); }
-  .star-badge { position: absolute; top: 12px; right: 12px; background: #fff4d6; color: #8a5300; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; }
-  .doc .tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
-  .doc .tag { font-size: 11.5px; font-weight: 600; color: var(--navy); background: var(--cyan-soft); padding: 2px 9px; border-radius: 999px; }
-  .doc .info { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink); margin: 0 0 14px; }
-  #docMore[hidden] { display: none; }
-  .btn-ghost-dark { background: var(--card); color: var(--navy); border: 1px solid var(--navy); }
-  .doc .call-link { font-size: 12px; color: var(--indigo); margin-top: 8px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 24px; }
-  .chip {
-    border: 1px solid var(--line); background: var(--card); color: var(--navy); border-radius: 999px;
-    padding: 7px 14px; font: inherit; font-size: 14px; cursor: pointer;
-  }
+  /* doctors */
+  .doc-search { display: block; max-width: 480px; margin: 0 auto 16px; }
+  .doc-search input { margin: 0; border-radius: 999px; padding: 14px 20px; border: 1px solid var(--line); background: #fff; box-shadow: 0 6px 18px rgba(13,36,112,.06); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 32px; }
+  .chip { border: 1px solid var(--line); background: #fff; color: var(--navy); border-radius: 999px; padding: 8px 16px; font: inherit; font-size: 14px; cursor: pointer; transition: all .2s; }
   .chip span { color: var(--muted); font-size: 12px; }
-  .chip.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .chip:hover { border-color: var(--navy); }
+  .chip.on { background: var(--ink-deep); border-color: var(--ink-deep); color: #fff; }
   .chip.on span { color: rgba(255,255,255,.75); }
+  .doc { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0; overflow: hidden; }
+  .doc::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 118px;
+    background: linear-gradient(135deg, var(--p1), var(--p3)); }
+  .doc.hl::before { background: linear-gradient(135deg, #dff4fc, #e4e9ff); }
+  .doc > * { position: relative; }
+  .avatar { width: 104px; height: 104px; border-radius: 50%; margin: 52px auto 14px; background: #fff; display: grid; place-items: center;
+    color: var(--navy); font-size: 32px; font-weight: 700; font-family: "Inter", sans-serif; box-shadow: 0 10px 26px rgba(13,36,112,.14); border: 4px solid #fff; }
+  .doc h3 { padding: 0 20px; }
+  .doc .deg { font-size: 12px; color: var(--muted); margin: 2px 20px 6px; }
+  .doc .spec { color: var(--teal); font-weight: 600; font-size: 14px; padding: 0 20px; }
+  .doc .tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 8px; padding: 0 20px; }
+  .doc .tag { font-size: 11.5px; font-weight: 600; color: var(--navy); background: var(--cyan-soft); padding: 2px 10px; border-radius: 999px; }
+  .doc .work { font-size: 13px; color: var(--muted); margin: 10px 20px 8px; }
+  .doc .info { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink); margin: 0 20px 16px; background: var(--soft); border-radius: 12px; padding: 8px 12px; width: calc(100% - 40px); }
+  .doc .btn { margin: auto 0 0; }
+  .doc .js-book { margin-bottom: 20px; }
+  .doc .call-link { font-size: 12px; color: var(--indigo); margin: -10px 0 18px; }
+  .star-badge { position: absolute; top: 14px; right: 14px; background: #fff; color: #8a5300; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; box-shadow: 0 2px 8px rgba(0,0,0,.06); z-index: 1; }
+  #docMore[hidden] { display: none; }
+  .doc-empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 30px; }
 
-  /* Booking */
-  .book { background: var(--card); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .book-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 40px; align-items: start; }
-  .steps { list-style: none; margin-top: 20px; }
-  .steps li { display: flex; gap: 14px; margin-bottom: 18px; }
-  .steps .n {
-    flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--indigo); color: #fff;
-    display: grid; place-items: center; font-weight: 700; font-size: 14px;
-  }
-  .steps b { color: var(--navy); }
-  .steps p { color: var(--muted); font-size: 14px; }
-  form { background: var(--bg); border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
+  /* why us */
+  .why { background: var(--soft); }
+  .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .why-item { background: #fff; border-radius: var(--radius); padding: 26px; display: flex; gap: 16px; border: 1px solid var(--line); }
+  .why-item .icon { flex: none; background: var(--cyan-soft); box-shadow: none; }
+  .why-item b { display: block; color: var(--ink-deep); font-size: 17px; margin-bottom: 4px; }
+  .why-item p { color: var(--muted); font-size: 14.5px; }
+
+  /* booking band */
+  .book { color: #fff; background: radial-gradient(800px 460px at 0% 0%, rgba(19,182,226,.25), transparent 60%), linear-gradient(150deg, #0a1440, #0d2470); }
+  .book-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 48px; align-items: start; }
+  .book .sec-head h2 { color: #fff; }
+  .book .sec-head p { color: rgba(255,255,255,.75); }
+  .steps { list-style: none; margin-top: 28px; }
+  .steps li { display: flex; gap: 16px; margin-bottom: 22px; }
+  .steps .n { flex: none; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.3); color: #fff; display: grid; place-items: center; font-weight: 700; }
+  .steps b { color: #fff; font-size: 17px; }
+  .steps p { color: rgba(255,255,255,.72); font-size: 14.5px; }
+  form { background: #fff; color: var(--ink); border-radius: 24px; padding: 28px; box-shadow: 0 30px 60px rgba(0,0,0,.25); }
+  form h3 { font-size: 20px; color: var(--ink-deep); margin-bottom: 4px; }
+  form .sub { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  label { display: block; font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
-  input, select, textarea {
-    width: 100%; border: 1px solid var(--line); background: #fff; border-radius: 10px;
-    padding: 12px; font: inherit; font-size: 15px; color: var(--ink); margin-bottom: 14px;
-  }
-  input:focus, select:focus, textarea:focus { outline: 2px solid var(--cyan); border-color: transparent; }
+  label { display: block; font-size: 14px; font-weight: 600; color: var(--ink-deep); margin-bottom: 6px; }
+  input, select, textarea { width: 100%; border: 1px solid var(--line); background: var(--soft); border-radius: 12px; padding: 13px 14px;
+    font: inherit; font-size: 15px; color: var(--ink); margin-bottom: 14px; transition: border-color .2s, background .2s; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--cyan); background: #fff; box-shadow: 0 0 0 4px rgba(19,182,226,.15); }
+  form .btn-primary { width: 100%; padding: 15px 14px 15px 24px; font-size: 16px; }
   .form-note { font-size: 12px; color: var(--muted); margin-top: 10px; text-align: center; }
-  .success {
-    display: none; background: #e7f8f0; border: 1px solid #b6ead3; color: #0b6b46;
-    padding: 16px; border-radius: 12px; margin-top: 14px; font-weight: 500;
-  }
-
-  /* Contact */
-  .contact-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; }
-  .contact-item { display: flex; gap: 14px; margin-bottom: 20px; }
-  .contact-item .icon { margin: 0; flex: none; }
-  .contact-item b { display: block; color: var(--navy); }
-  .contact-item span { color: var(--muted); font-size: 15px; }
-  .map { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); min-height: 320px; }
-  .map iframe { width: 100%; height: 100%; min-height: 320px; border: 0; display: block; }
-
-  /* Inline form errors & doctor hint */
+  .success { display: none; background: #e7f8f0; border: 1px solid #b6ead3; color: #0b6b46; padding: 16px; border-radius: 14px; margin-top: 14px; font-weight: 500; }
   .err-msg { display: none; color: #b42318; font-size: 13px; margin: -10px 0 12px; }
   .invalid .err-msg { display: block; }
   .invalid input, .invalid select { border-color: #e5484d; }
-  .svc-hint { font-size: 13px; color: var(--indigo); background: var(--cyan-soft); border-radius: 8px; padding: 8px 10px; margin: -6px 0 14px; }
+  .svc-hint { font-size: 13px; color: var(--indigo); background: var(--cyan-soft); border-radius: 10px; padding: 9px 12px; margin: -6px 0 14px; }
   .svc-hint[hidden] { display: none; }
   #book { scroll-margin-top: 72px; }
   .success .big { font-size: 15px; }
   .success .serial-no { display: block; font-size: 44px; font-weight: 700; line-height: 1.1; color: var(--navy); margin: 4px 0; }
-  .success .btn { margin-top: 12px; background: #25d366; color: #fff; }
-  .doc-search { display: block; max-width: 420px; margin: 0 auto 14px; }
-  .doc-search input { margin: 0; border-radius: 999px; padding: 12px 18px; }
-  .doc-empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 24px; }
+  .success .btn { margin-top: 12px; background: #25d366; color: #fff; padding: 10px 18px; }
 
-  /* Mobile bottom action bar (replaces the round buttons on phones) */
+  /* FAQ */
+  .faq { max-width: 860px; margin: 0 auto; }
+  .faq details { border: 1px solid var(--line); border-radius: 18px; padding: 0 22px; margin-bottom: 12px; background: #fff; transition: box-shadow .2s; }
+  .faq details[open] { box-shadow: var(--shadow); }
+  .faq summary { list-style: none; cursor: pointer; padding: 20px 0; font-weight: 600; color: var(--ink-deep); font-size: 17px; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 20px; color: var(--navy); transition: transform .25s; }
+  .faq details[open] summary::after { transform: rotate(45deg); background: var(--ink-deep); color: #fff; }
+  .faq details p { padding: 0 0 20px; color: var(--muted); }
+
+  /* contact */
+  .contact { background: var(--soft); }
+  .contact-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; }
+  .contact-card { background: #fff; border-radius: var(--radius); padding: 26px; border: 1px solid var(--line); }
+  .contact-item { display: flex; gap: 14px; margin-bottom: 22px; }
+  .contact-item:last-child { margin-bottom: 0; }
+  .contact-item .icon { margin: 0; flex: none; background: var(--cyan-soft); box-shadow: none; }
+  .contact-item b { display: block; color: var(--ink-deep); }
+  .contact-item span { color: var(--muted); font-size: 15px; }
+  .contact-item a { color: var(--indigo); }
+  .map { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); min-height: 340px; }
+  .map iframe { width: 100%; height: 100%; min-height: 340px; border: 0; display: block; }
+
+  /* CTA band + footer */
+  .cta { padding: 0; }
+  .cta-box { border-radius: 28px; padding: 48px; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; color: #fff;
+    background: radial-gradient(500px 300px at 100% 0%, rgba(19,182,226,.45), transparent 60%), linear-gradient(135deg, #0a1440, #1d3ea6); margin: 0 auto 96px; }
+  .cta-box h2 { font-size: clamp(24px, 3.4vw, 36px); line-height: 1.2; max-width: 620px; }
+  footer { background: var(--ink-deep); color: rgba(255,255,255,.72); padding: 36px 0; font-size: 14px; }
+  .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .foot-logo { height: 36px; width: auto; display: block; margin-bottom: 10px; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+  /* floating buttons + mobile bar */
+  .fab { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 30; }
+  .fab a { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; box-shadow: 0 8px 22px rgba(0,0,0,.2); color: #fff; }
+  .fab .wa { background: #25d366; } .fab .call { background: var(--indigo); }
+  .fab svg { width: 26px; height: 26px; }
   .mbar { display: none; }
 
-  footer { background: var(--navy); color: rgba(255,255,255,.75); padding: 28px 0; font-size: 14px; }
-  .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  /* scroll reveal (only when JS runs; content is visible without JS) */
+  .js .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
+  .js .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .js .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
 
-  /* Floating actions */
-  .fab { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 30; }
-  .fab a, .fab button {
-    width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; border: 0; cursor: pointer;
-    box-shadow: 0 8px 22px rgba(0,0,0,.2); color: #fff;
-  }
-  .fab .wa { background: #25d366; }
-  .fab .call { background: var(--indigo); }
-  .fab svg { width: 26px; height: 26px; }
-
-  @media (max-width: 900px) {
-    .hero-grid, .book-grid, .contact-grid { grid-template-columns: 1fr; }
-    .g4 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 960px) {
+    .hero-grid, .book-grid, .contact-grid, .why-grid { grid-template-columns: 1fr; }
+    .g4, .stats { grid-template-columns: repeat(2, 1fr); }
     .g3 { grid-template-columns: 1fr 1fr; }
     .nav-links { display: none; }
+    .strip { grid-template-columns: 1fr; }
+    .strip > * + * { border-left: 0; border-top: 1px solid rgba(255,255,255,.16); }
+    section { padding: 72px 0; }
   }
   @media (max-width: 560px) {
-    .g3, .row { grid-template-columns: 1fr; }
-    .g4 { gap: 12px; }
-    .g4 .card { padding: 16px; }
-    .hero { padding: 44px 0 52px; }
-    section { padding: 52px 0; }
+    .g3, .row, .g4 { grid-template-columns: 1fr; }
+    .stats { gap: 12px; } .stat { padding: 20px 18px; }
+    .hero { padding-top: 48px; } .hero-grid { padding-bottom: 48px; }
+    section { padding: 56px 0; }
     .brand img { height: 38px; }
     .nav-right .btn { display: none; }
     .fab { display: none; }
-    body { padding-bottom: 72px; }
-    .chips { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; margin: 0 -16px 20px; padding: 0 16px 4px; scrollbar-width: none; }
+    body { padding-bottom: 76px; }
+    .cta-box { padding: 30px 22px; margin-bottom: 56px; }
+    form { padding: 22px 18px; }
+    .chips { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; margin: 0 -20px 24px; padding: 0 20px 4px; scrollbar-width: none; }
     .chips::-webkit-scrollbar { display: none; }
     .chip { flex: none; }
-    .mbar {
-      display: flex; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-      padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--card);
-      border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(13,36,112,.08); transition: transform .2s;
-    }
-    .mbar .btn { flex: 1; }
-    .mbar .btn-call { flex: 0 0 auto; background: var(--card); color: var(--navy); border: 1px solid var(--navy); }
+    .mbar { display: flex; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--line);
+      box-shadow: 0 -6px 20px rgba(13,36,112,.08); transition: transform .2s; }
+    .mbar .btn { flex: 1; padding: 12px 16px; }
+    .mbar .btn-call { flex: 0 0 auto; background: #fff; color: var(--navy); border: 1px solid var(--navy); }
     .mbar.away { transform: translateY(110%); }
   }
 </style>
+
 </head>
 <body>
+<script>document.documentElement.classList.add("js");</script>
 
 <header>
   <div class="wrap nav">
@@ -265,32 +310,28 @@
       <a href="#services" data-bn="সেবাসমূহ" data-en="Services"></a>
       <a href="#doctors" data-bn="ডাক্তার" data-en="Doctors"></a>
       <a href="#book" data-bn="অ্যাপয়েন্টমেন্ট" data-en="Appointment"></a>
+      <a href="#faq" data-bn="প্রশ্নোত্তর" data-en="FAQ"></a>
       <a href="#contact" data-bn="যোগাযোগ" data-en="Contact"></a>
     </nav>
     <div class="nav-right">
       <button class="lang" id="langBtn">English</button>
-      <a href="#book" class="btn btn-primary btn-sm" data-bn="সিরিয়াল নিন" data-en="Book Now"></a>
+      <a href="#book" class="btn btn-primary btn-sm"><span data-bn="সিরিয়াল নিন" data-en="Book Now"></span><span class="arr">↗</span></a>
     </div>
   </div>
 </header>
 
-<section class="hero">
+<section class="hero on-dark">
   <div class="wrap hero-grid">
-    <div>
-      <span class="pill" data-bn="📍 তেঁতুলতলা মোড়, খুলনা" data-en="📍 Tetultola Mor, Khulna"></span>
-      <h1 data-bn="লাইনে না দাঁড়িয়ে, ঘরে বসেই ডাক্তারের সিরিয়াল নিন" data-en="Skip the queue. Book your doctor from home."></h1>
-      <p data-bn="বিশেষজ্ঞ ডাক্তার, আধুনিক ডায়াগনস্টিক ও জরুরি সেবা — এক জায়গায়। ২ মিনিটে অনলাইনে অ্যাপয়েন্টমেন্ট বুক করুন, WhatsApp-এ কনফার্মেশন পান।" data-en="Specialist doctors, modern diagnostics and emergency care in one place. Book online in 2 minutes and get confirmation on WhatsApp."></p>
+    <div class="reveal">
+      <span class="eyebrow" data-bn="তেঁতুলতলা মোড়, খুলনা" data-en="Tetultola Mor, Khulna"></span>
+      <h1 data-bnh='লাইনে না দাঁড়িয়ে, <span class="accent">ঘরে বসেই</span> ডাক্তারের সিরিয়াল নিন' data-enh='Skip the queue. <span class="accent">Book your doctor</span> from home.'></h1>
+      <p class="lead" data-bn="বিশেষজ্ঞ ডাক্তার, আধুনিক ডায়াগনস্টিক ও জরুরি সেবা — এক জায়গায়। ২ মিনিটে অনলাইনে সিরিয়াল নিন, সাথে সাথে সিরিয়াল নম্বর পান।" data-en="Specialist doctors, modern diagnostics and emergency care in one place. Book online in 2 minutes and get your serial number instantly."></p>
       <div class="hero-ctas">
-        <a href="#book" class="btn btn-primary" data-bn="সিরিয়াল নিন" data-en="Book Appointment"></a>
+        <a href="#book" class="btn btn-light"><span data-bn="সিরিয়াল নিন" data-en="Book Appointment"></span><span class="arr">↗</span></a>
         <a href="#" class="btn btn-ghost js-call" data-bn="📞 কল করুন" data-en="📞 Call Us"></a>
       </div>
-      <div class="hero-stats">
-        <div class="stat"><b class="js-doc-count">39+</b><span data-bn="বিশেষজ্ঞ ডাক্তার" data-en="Specialist doctors"></span></div>
-        <div class="stat"><b class="js-dept-count">15</b><span data-bn="চিকিৎসা বিভাগ" data-en="Departments"></span></div>
-        <div class="stat"><b data-bn="২৪ ঘণ্টা" data-en="24 hrs"></b><span data-bn="অনলাইন সিরিয়াল" data-en="Online booking"></span></div>
-      </div>
     </div>
-    <div class="hero-card">
+    <div class="hero-card reveal">
       <h3 data-bn="🕒 সময়সূচি" data-en="🕒 Timings"></h3>
       <div class="hours-row"><span data-bn="ডাক্তারদের চেম্বার" data-en="Doctors' chambers"></span><span data-bn="বিকাল ৩টা – রাত ৯টা" data-en="3 PM – 9 PM"></span></div>
       <div class="hours-row"><span data-bn="অনলাইন সিরিয়াল" data-en="Online booking"></span><span data-bn="২৪ ঘণ্টা" data-en="24 hours"></span></div>
@@ -300,37 +341,92 @@
       </a>
     </div>
   </div>
+  <div class="wrap">
+    <div class="strip">
+      <a href="#book">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M9 15l2 2 4-4"/></svg>
+        <div><b data-bn="সিরিয়াল নিন" data-en="Book a visit"></b><span data-bn="২৪ ঘণ্টা অনলাইনে, ২ মিনিটে" data-en="Online 24/7, in 2 minutes"></span></div>
+      </a>
+      <a href="#" class="js-emergency">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17V7h11v10M14 10h4l3 3v4h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/><path d="M8.5 9.5v4M6.5 11.5h4"/></svg>
+        <div><b data-bn="জরুরি যোগাযোগ" data-en="Emergency"></b><span class="js-emergency-text ph">01XXX-XXXXXX</span></div>
+      </a>
+      <div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <div><b data-bn="চেম্বারের সময়" data-en="Chamber hours"></b><span data-bn="প্রতিদিন বিকাল ৩টা – রাত ৯টা" data-en="Daily 3 PM – 9 PM"></span></div>
+      </div>
+    </div>
+  </div>
 </section>
 
-<section id="services">
+<section id="about">
   <div class="wrap">
-    <div class="sec-head">
-      <div class="kicker" data-bn="আমাদের সেবা" data-en="OUR SERVICES"></div>
-      <h2 data-bn="আপনার প্রয়োজনীয় সব চিকিৎসা এক ছাদের নিচে" data-en="Everything you need under one roof"></h2>
+    <div class="sec-head reveal">
+      <span class="eyebrow" data-bn="আমাদের সম্পর্কে" data-en="About us"></span>
+      <h2 data-bnh='বিশ্বাস ও আধুনিক চিকিৎসায় <span class="accent">খুলনার পাশে</span>' data-enh='Trusted, modern care <span class="accent">for Khulna</span>'></h2>
+      <p data-bn="অভিজ্ঞ বিশেষজ্ঞ ডাক্তার, ডায়াগনস্টিক সেবা আর সহজ অনলাইন সিরিয়াল — রোগীর সময় ও কষ্ট বাঁচাতে সবকিছু এক জায়গায়।" data-en="Experienced specialists, diagnostics and simple online booking — everything in one place to save patients time and trouble."></p>
+    </div>
+    <div class="stats">
+      <div class="stat reveal"><i aria-hidden="true">🩺</i><b class="count js-doc-count" data-suffix="+">39+</b><span data-bn="বিশেষজ্ঞ ডাক্তার" data-en="Specialist doctors"></span></div>
+      <div class="stat reveal"><i aria-hidden="true">🏥</i><b class="count js-dept-count">15</b><span data-bn="চিকিৎসা বিভাগ" data-en="Departments"></span></div>
+      <div class="stat reveal"><i aria-hidden="true">🌙</i><b class="count" data-to="24" data-suffix="/7">24/7</b><span data-bn="অনলাইন সিরিয়াল" data-en="Online booking"></span></div>
+      <div class="stat reveal"><i aria-hidden="true">⚡</i><b class="count" data-to="2" data-bnsuffix=" মিনিট" data-ensuffix=" min">2</b><span data-bn="সিরিয়াল নিতে সময়" data-en="To book a serial"></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="services" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-row reveal">
+      <div class="sec-head left">
+        <span class="eyebrow" data-bn="আমাদের সেবা" data-en="Our services"></span>
+        <h2 data-bnh='প্রয়োজনীয় সব চিকিৎসা <span class="accent">এক ছাদের নিচে</span>' data-enh='Everything you need <span class="accent">under one roof</span>'></h2>
+      </div>
+      <a href="#book" class="btn btn-primary"><span data-bn="সিরিয়াল নিন" data-en="Book now"></span><span class="arr">↗</span></a>
     </div>
     <div class="grid g4" id="servicesGrid"></div>
   </div>
 </section>
 
-<section id="doctors" style="padding-top:0">
+<section id="doctors" class="why" style="background:#fff;padding-top:0">
   <div class="wrap">
-    <div class="sec-head">
-      <div class="kicker" data-bn="বিশেষজ্ঞ ডাক্তার" data-en="SPECIALISTS"></div>
-      <h2 data-bn="আমাদের অভিজ্ঞ বিশেষজ্ঞ ডাক্তারগণ" data-en="Our experienced specialists"></h2>
+    <div class="sec-head reveal">
+      <span class="eyebrow" data-bn="বিশেষজ্ঞ ডাক্তার" data-en="Specialists"></span>
+      <h2 data-bnh='আমাদের <span class="accent">অভিজ্ঞ বিশেষজ্ঞ</span> ডাক্তারগণ' data-enh='Our <span class="accent">experienced</span> specialists'></h2>
+      <p data-bn="নাম বা রোগ লিখে খুঁজুন, বিভাগ অনুযায়ী দেখুন, আর এক ক্লিকে সিরিয়াল নিন।" data-en="Search by name or condition, browse by department, and book in one click."></p>
     </div>
     <label class="doc-search"><input type="search" id="docSearch" autocomplete="off" aria-label="ডাক্তার খুঁজুন"></label>
     <div class="chips" id="docFilter"></div>
     <div class="grid g3" id="doctorsGrid"></div>
-    <div style="text-align:center;margin-top:20px"><button type="button" class="btn btn-ghost-dark" id="docMore" hidden></button></div>
+    <div style="text-align:center;margin-top:28px"><button type="button" class="btn btn-ghost-dark" id="docMore" hidden></button></div>
   </div>
 </section>
 
-<section id="book" class="book">
+<section class="why">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow" data-bn="কেন কমিউনিটি কেয়ার" data-en="Why Community Care"></span>
+      <h2 data-bnh='রোগীর সময় ও সুবিধাই <span class="accent">আমাদের অগ্রাধিকার</span>' data-enh='Your time and comfort <span class="accent">come first</span>'></h2>
+    </div>
+    <div class="why-grid">
+      <div class="why-item reveal"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v3a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="12" r="2"/></svg></div>
+        <div><b data-bn="এক জায়গায় অনেক বিশেষজ্ঞ" data-en="Many specialists, one place"></b><p data-bn="মেডিসিন, শিশু, গাইনি, সার্জারি, কিডনিসহ বিভিন্ন বিভাগের অভিজ্ঞ ডাক্তার।" data-en="Experienced doctors across medicine, pediatrics, gynecology, surgery, nephrology and more."></p></div></div>
+      <div class="why-item reveal"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
+        <div><b data-bn="২৪ ঘণ্টা অনলাইন সিরিয়াল" data-en="Book online, any time"></b><p data-bn="রাত বা ছুটির দিনেও মোবাইল থেকে সিরিয়াল, সাথে সাথে সিরিয়াল নম্বর।" data-en="Book from your phone day or night and get your serial number instantly."></p></div></div>
+      <div class="why-item reveal"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3h6M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7 15h10"/></svg></div>
+        <div><b data-bn="ডায়াগনস্টিক একই ভবনে" data-en="Diagnostics in the same building"></b><p data-bn="প্যাথলজি ল্যাব ও আল্ট্রাসনোগ্রাম — পরীক্ষার জন্য অন্য কোথাও যেতে হয় না।" data-en="Pathology lab and ultrasonography — no need to go elsewhere for tests."></p></div></div>
+      <div class="why-item reveal"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <div><b data-bn="আগে থেকেই ফি ও সময় জানুন" data-en="Fees and timings up front"></b><p data-bn="প্রতিটি ডাক্তারের চেম্বারের সময় ও ভিজিট ফি বুকিংয়ের আগেই দেখা যায়।" data-en="Each doctor's chamber time and visit fee are shown before you book."></p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="book" class="book on-dark">
   <div class="wrap book-grid">
-    <div>
-      <div class="sec-head" style="text-align:left;margin:0">
-        <div class="kicker" data-bn="অনলাইন সিরিয়াল" data-en="ONLINE BOOKING"></div>
-        <h2 data-bn="৩ ধাপে অ্যাপয়েন্টমেন্ট" data-en="Book in 3 steps"></h2>
+    <div class="reveal">
+      <div class="sec-head left" style="margin:0">
+        <span class="eyebrow" data-bn="অনলাইন সিরিয়াল" data-en="Online booking"></span>
+        <h2 data-bnh='মাত্র <span class="accent">৩ ধাপে</span> অ্যাপয়েন্টমেন্ট' data-enh='Book in <span class="accent">3 simple steps</span>'></h2>
       </div>
       <ul class="steps">
         <li><span class="n">১</span><div><b data-bn="ফর্ম পূরণ করুন" data-en="Fill the form"></b><p data-bn="নাম, ফোন নম্বর ও ডাক্তার/টেস্ট বেছে নিন" data-en="Your name, phone and the doctor or test you need"></p></div></li>
@@ -339,7 +435,9 @@
       </ul>
     </div>
 
-    <form id="bookingForm" novalidate>
+    <form id="bookingForm" novalidate class="reveal">
+      <h3 data-bn="সিরিয়াল নিন" data-en="Book a visit"></h3>
+      <p class="sub" data-bn="বিনামূল্যে অনলাইন বুকিং · সাথে সাথে সিরিয়াল নম্বর" data-en="Free online booking · instant serial number"></p>
       <div class="row">
         <div><label for="f-name" data-bn="রোগীর নাম *" data-en="Patient name *"></label><input id="f-name" name="name" required minlength="2" maxlength="80" autocomplete="name"><small class="err-msg" data-bn="রোগীর নাম লিখুন" data-en="Please enter the patient's name"></small></div>
         <div><label for="f-phone" data-bn="মোবাইল নম্বর *" data-en="Mobile number *"></label><input id="f-phone" name="phone" type="tel" inputmode="tel" pattern="01[3-9][0-9]{8}" placeholder="01XXXXXXXXX" required autocomplete="tel"><small class="err-msg" data-bn="সঠিক মোবাইল নম্বর লিখুন (যেমন 01712345678)" data-en="Enter a valid mobile number (e.g. 01712345678)"></small></div>
@@ -356,21 +454,44 @@
       <div class="svc-hint" id="svcHint" hidden></div>
       <label for="f-note" data-bn="সমস্যা সংক্ষেপে (ঐচ্ছিক)" data-en="Short note (optional)"></label>
       <textarea id="f-note" name="note" rows="3"></textarea>
-      <button type="submit" class="btn btn-primary" style="width:100%" data-bn="সিরিয়াল কনফার্ম করুন" data-en="Confirm Booking"></button>
+      <button type="submit" class="btn btn-primary"><span data-bn="সিরিয়াল কনফার্ম করুন" data-en="Confirm Booking"></span><span class="arr">↗</span></button>
       <div class="success" id="successMsg"></div>
       <p class="form-note" data-bn="আপনার তথ্য শুধুমাত্র অ্যাপয়েন্টমেন্টের জন্য ব্যবহার হবে।" data-en="Your details are used only for your appointment."></p>
     </form>
   </div>
 </section>
 
-<section id="contact">
+<section id="faq">
   <div class="wrap">
-    <div class="sec-head">
-      <div class="kicker" data-bn="যোগাযোগ" data-en="CONTACT"></div>
-      <h2 data-bn="আমাদের খুঁজে নিন" data-en="Find us"></h2>
+    <div class="sec-head reveal">
+      <span class="eyebrow" data-bn="প্রশ্নোত্তর" data-en="FAQ"></span>
+      <h2 data-bnh='রোগীরা যা <span class="accent">প্রায়ই জানতে চান</span>' data-enh='Questions we <span class="accent">get often</span>'></h2>
+    </div>
+    <div class="faq">
+      <details class="reveal" open><summary data-bn="অনলাইনে কীভাবে সিরিয়াল নেব?" data-en="How do I book online?"></summary>
+        <p data-bn="উপরের ফর্মে রোগীর নাম, মোবাইল নম্বর, তারিখ আর ডাক্তার বা সেবা বেছে “সিরিয়াল কনফার্ম করুন” চাপুন। সাথে সাথে আপনার সিরিয়াল নম্বর দেখাবে।" data-en="Fill in the patient's name, mobile number, date and doctor or service in the form above and press “Confirm Booking”. Your serial number appears immediately."></p></details>
+      <details class="reveal"><summary data-bn="সিরিয়াল কনফার্ম হবে কীভাবে?" data-en="How is my booking confirmed?"></summary>
+        <p data-bn="বুকিংয়ের পর আমাদের রিসেপশন WhatsApp বা ফোনে আপনার সিরিয়াল কনফার্ম করবে।" data-en="After you book, our reception confirms your serial on WhatsApp or by phone."></p></details>
+      <details class="reveal"><summary data-bn="ভিজিট ফি কি অনলাইনে দিতে হয়?" data-en="Do I pay the fee online?"></summary>
+        <p data-bn="না। অনলাইন সিরিয়াল বিনামূল্যে। ভিজিট ফি হাসপাতালে এসে রিসেপশনে দেবেন। প্রত্যেক ডাক্তারের ফি তাঁর কার্ডে লেখা আছে।" data-en="No. Online booking is free. Pay the visit fee at reception when you come. Each doctor's fee is shown on their card."></p></details>
+      <details class="reveal"><summary data-bn="সিরিয়াল বাতিল বা পরিবর্তন করতে চাইলে?" data-en="How do I cancel or change a booking?"></summary>
+        <p data-bn="রিসেপশনে কল করুন, আমরা সিরিয়াল বাতিল বা অন্য দিনে সরিয়ে দেব।" data-en="Call reception and we will cancel it or move it to another day."></p></details>
+      <details class="reveal"><summary data-bn="একই নম্বর থেকে কয়টি সিরিয়াল নেওয়া যায়?" data-en="How many bookings can one number make?"></summary>
+        <p data-bn="একই মোবাইল নম্বর থেকে একদিনে সর্বোচ্চ ৩টি সিরিয়াল নেওয়া যায়। বেশি দরকার হলে রিসেপশনে কল করুন।" data-en="Up to 3 bookings per mobile number per day. For more, please call reception."></p></details>
+      <details class="reveal"><summary data-bn="জরুরি প্রয়োজনে কী করব?" data-en="What should I do in an emergency?"></summary>
+        <p><span data-bn="অনলাইন ফর্মের অপেক্ষা না করে সরাসরি জরুরি নম্বরে কল করুন:" data-en="Don't wait for the online form — call our emergency number directly:"></span> <a href="#" class="js-emergency"><b class="js-emergency-text ph">01XXX-XXXXXX</b></a></p></details>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="contact">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow" data-bn="যোগাযোগ" data-en="Contact"></span>
+      <h2 data-bnh='আমরা আছি <span class="accent">আপনার কাছেই</span>' data-enh='We are <span class="accent">close to you</span>'></h2>
     </div>
     <div class="contact-grid">
-      <div>
+      <div class="contact-card reveal">
         <div class="contact-item">
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
           <div><b data-bn="ঠিকানা" data-en="Address"></b><span data-bn="১৯ কেডিএ এভিনিউ, মোহসেন টাওয়ার, তেঁতুলতলা মোড়, খুলনা" data-en="19 KDA Avenue, Mohsen Tower, Tetultola Mor, Khulna"></span></div>
@@ -384,8 +505,20 @@
           <div><b data-bn="সময়" data-en="Hours"></b><span data-bn="ডাক্তারদের চেম্বার: বিকাল ৩টা – রাত ৯টা" data-en="Doctors' chambers: 3 PM – 9 PM"></span></div>
         </div>
       </div>
-      <div class="map">
+      <div class="map reveal">
         <iframe loading="lazy" title="Map" src="https://www.google.com/maps?q=Tetultola+Mor,+KDA+Avenue,+Khulna&output=embed"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <div class="cta-box reveal">
+      <h2 data-bn="আজই সিরিয়াল নিন — লাইনে দাঁড়ানোর দিন শেষ।" data-en="Book today — no more waiting in line."></h2>
+      <div class="hero-ctas">
+        <a href="#book" class="btn btn-light"><span data-bn="সিরিয়াল নিন" data-en="Book now"></span><span class="arr">↗</span></a>
+        <a href="#" class="btn btn-ghost js-call" data-bn="📞 কল করুন" data-en="📞 Call us"></a>
       </div>
     </div>
   </div>
@@ -437,8 +570,10 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 const fmtPhone = p => p.length === 11 ? p.slice(0, 5) + "-" + p.slice(5) : p;
 
 function renderLists() {
-  document.getElementById("servicesGrid").innerHTML = CONFIG.services.map(s => `
-    <div class="card">
+  const two = n => lang === "bn" ? String(n).padStart(2, "0").replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]) : String(n).padStart(2, "0");
+  document.getElementById("servicesGrid").innerHTML = CONFIG.services.map((s, i) => `
+    <div class="card svc">
+      <div class="num">[${two(i + 1)}]</div>
       <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[s.icon] || ""}</svg></div>
       <h3>${esc(lang === "bn" ? s.bn : s.en)}</h3>
       <p>${esc(lang === "bn" ? s.dbn : s.den)}</p>
@@ -483,8 +618,9 @@ function renderLists() {
       ? `কাউকে পাওয়া যায়নি। <a href="#" class="js-call" style="color:var(--indigo)">📞 কল করে জেনে নিন</a>`
       : `No doctor found. <a href="#" class="js-call" style="color:var(--indigo)">📞 Call us</a>`}</p>`;
   document.getElementById("docSearch").placeholder = lang === "bn" ? "🔍 ডাক্তারের নাম বা রোগ লিখুন (যেমন: শিশু, হার্ট)" : "🔍 Search doctor or specialty (e.g. child, heart)";
-  document.querySelector(".js-doc-count").textContent = bnNum(CONFIG.doctors.length) + "+";
-  document.querySelector(".js-dept-count").textContent = bnNum(present.length);
+  document.querySelector(".js-doc-count").dataset.to = CONFIG.doctors.length;
+  document.querySelector(".js-dept-count").dataset.to = present.length;
+  paintCounts();
   const more = document.getElementById("docMore");
   more.hidden = limit >= docs.length;
   more.textContent = lang === "bn" ? `সব ${bnNum(docs.length)} জন ডাক্তার দেখুন ↓` : `Show all ${docs.length} doctors ↓`;
@@ -543,6 +679,8 @@ function applyLang() {
   document.documentElement.lang = lang;
   document.body.classList.toggle("en", lang === "en");
   document.querySelectorAll("[data-bn]").forEach(el => { el.textContent = el.dataset[lang]; });
+  // Two-tone headings: static markup written in this file (never user input).
+  document.querySelectorAll("[data-bnh]").forEach(el => { el.innerHTML = lang === "bn" ? el.dataset.bnh : el.dataset.enh; });
   document.getElementById("langBtn").textContent = lang === "bn" ? "English" : "বাংলা";
   renderLists();
 }
@@ -669,6 +807,37 @@ document.getElementById("yr").textContent = new Date().getFullYear();
   });
 })();
 if (/[?&]review=1\b/.test(location.search)) document.body.classList.add("review");
+// Number counters (animate once when first seen) and fade-in on scroll.
+const countState = new WeakMap();   // element -> value currently shown while animating
+function fmtCount(el, v) {
+  const n = lang === "bn" ? Number(v).toLocaleString("bn-BD") : String(v);
+  const suf = el.dataset[lang + "suffix"] ?? el.dataset.suffix ?? "";
+  return n + (lang === "bn" ? suf.replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]) : suf);
+}
+function paintCounts() {
+  document.querySelectorAll(".count").forEach(el => {
+    el.textContent = fmtCount(el, countState.has(el) ? countState.get(el) : (+el.dataset.to || 0));
+  });
+}
+function runCount(el) {
+  const to = +el.dataset.to || 0, t0 = performance.now(), dur = 1200;
+  const step = now => {
+    const k = Math.min(1, (now - t0) / dur), v = Math.round(to * (1 - Math.pow(1 - k, 3)));
+    countState.set(el, v); el.textContent = fmtCount(el, v);
+    if (k < 1) requestAnimationFrame(step); else countState.delete(el);
+  };
+  countState.set(el, 0); el.textContent = fmtCount(el, 0); requestAnimationFrame(step);
+}
+(() => {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!("IntersectionObserver" in window) || reduce) { document.querySelectorAll(".reveal").forEach(e => e.classList.add("in")); return; }
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    e.target.classList.add("in"); io.unobserve(e.target);
+    e.target.querySelectorAll(".count").forEach(runCount);
+  }), { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+  document.querySelectorAll(".reveal").forEach(e => io.observe(e));
+})();
 // Hide the mobile bottom bar while the booking form is on screen.
 if ("IntersectionObserver" in window) {
   new IntersectionObserver(([e]) => document.getElementById("mbar").classList.toggle("away", e.isIntersecting), { threshold: 0.15 })
