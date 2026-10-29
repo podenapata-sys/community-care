@@ -96,6 +96,25 @@
   .nav-links a { padding: 8px 14px; border-radius: 999px; transition: background .2s, color .2s; }
   .nav-links a:hover { background: var(--soft); color: var(--navy); }
   .nav-right { display: flex; gap: 10px; align-items: center; }
+  /* site search */
+  .search-btn { display: inline-flex; align-items: center; gap: 6px; }
+  .search-btn svg { width: 16px; height: 16px; }
+  .search-ov { position: fixed; inset: 0; z-index: 80; background: rgba(10,20,64,.55); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: flex-start; padding: 80px 16px 16px; }
+  .search-ov[hidden] { display: none; }
+  .search-box { width: 100%; max-width: 640px; background: #fff; border-radius: 22px; box-shadow: 0 30px 80px rgba(0,0,0,.3); overflow: hidden; display: flex; flex-direction: column; max-height: calc(100vh - 110px); }
+  .search-top { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .search-top svg { width: 20px; height: 20px; color: var(--muted); flex: none; }
+  .search-top input { flex: 1; min-width: 0; border: 0; outline: 0; font: inherit; font-size: 17px; color: var(--ink-deep); background: transparent; }
+  .search-top button { border: 0; background: var(--soft); border-radius: 10px; padding: 6px 10px; font: inherit; font-size: 13px; cursor: pointer; color: var(--navy); }
+  .search-res { overflow-y: auto; padding: 8px; }
+  .search-res h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 10px 10px 4px; }
+  .search-res a { display: block; padding: 10px 12px; border-radius: 12px; color: var(--ink-deep); }
+  .search-res a:hover, .search-res a.on { background: var(--soft); }
+  .search-res a b { display: block; font-size: 15px; } .search-res a span { display: block; font-size: 13px; color: var(--muted); }
+  .search-res .empty { padding: 18px 12px; color: var(--muted); font-size: 15px; }
+  .search-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 6px 10px 12px; }
+  .search-chips button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; color: var(--navy); }
+  body.search-open { overflow: hidden; }
   .lang { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 13px; cursor: pointer; color: var(--navy); }
 
   /* hero (dark gradient, no photo) */
@@ -324,6 +343,8 @@
     section { padding: 56px 0; }
     .brand img { height: 38px; }
     .nav-right .btn { display: none; }
+    .search-btn .lbl { display: none; }
+    .search-ov { padding-top: 16px; } .search-box { max-height: calc(100vh - 32px); }
     .fab { display: none; }
     body { padding-bottom: 76px; }
     .cta-box { padding: 30px 22px; margin-bottom: 56px; }
@@ -358,11 +379,23 @@ function imgOk(img) { img.closest(".ph-img").classList.add("ok"); img.closest(".
       <a href="#contact" data-bn="যোগাযোগ" data-en="Contact"></a>
     </nav>
     <div class="nav-right">
+      <button class="lang search-btn" id="searchBtn" type="button" data-bn-aria="ওয়েবসাইটে খুঁজুন" data-en-aria="Search this website" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="lbl" data-bn="খুঁজুন" data-en="Search"></span></button>
       <button class="lang" id="langBtn">English</button>
       <a href="#book" class="btn btn-primary btn-sm"><span data-bn="সিরিয়াল নিন" data-en="Book Now"></span><span class="arr">↗</span></a>
     </div>
   </div>
 </header>
+
+<div class="search-ov" id="searchOv" hidden role="dialog" aria-modal="true" aria-labelledby="searchInput">
+  <div class="search-box">
+    <div class="search-top">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="searchInput" autocomplete="off" enterkeyhint="search">
+      <button type="button" id="searchClose" data-bn="বন্ধ" data-en="Close"></button>
+    </div>
+    <div class="search-res" id="searchRes" role="listbox"></div>
+  </div>
+</div>
 
 <section class="hero on-dark">
   <div class="wrap hero-grid">
@@ -734,6 +767,120 @@ document.getElementById("doctors").addEventListener("click", e => {
   }
 });
 
+// ---------- site search: doctors, departments, services, FAQ and hospital info ----------
+const toLatinDigits = t => t.replace(/[০-৯]/g, d => "০১২৩৪৫৬৭৮৯".indexOf(d));
+const norm = t => toLatinDigits(String(t || "")).toLowerCase();
+const localDigits = t => lang === "bn" ? String(t).replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]) : String(t);
+const searchEls = { ov: document.getElementById("searchOv"), input: document.getElementById("searchInput"), res: document.getElementById("searchRes") };
+let searchHits = [], searchOn = -1, searchReturn = null;
+
+function searchIndex() {
+  const L = lang === "bn";
+  const items = [];
+  CONFIG.doctors.forEach((d, i) => {
+    const dep = CONFIG.depts[d.dept] || {};
+    items.push({ group: L ? "ডাক্তার" : "Doctors", title: d.name, sub: (L ? d.sbn : d.sen) + (d.fee ? ` · ৳${localDigits(d.fee)}` : ""),
+      text: [d.name, d.aka, d.sbn, d.sen, d.deg, d.work, dep.bn, dep.en].join(" "), go: () => bookWith("doc:" + i) });
+  });
+  Object.keys(CONFIG.depts).filter(k => CONFIG.doctors.some(d => d.dept === k)).forEach(k => {
+    const n = CONFIG.doctors.filter(d => d.dept === k).length;
+    items.push({ group: L ? "বিভাগ" : "Departments", title: CONFIG.depts[k][lang], sub: L ? `${localDigits(n)} জন` : `${n} listed`,
+      text: CONFIG.depts[k].bn + " " + CONFIG.depts[k].en, go: () => { docFilter = k; docQuery = ""; document.getElementById("docSearch").value = ""; renderLists(); jump("#doctors"); } });
+  });
+  CONFIG.services.forEach((s, i) => items.push({ group: L ? "সেবা" : "Services", title: L ? s.bn : s.en, sub: L ? s.dbn : s.den,
+    text: [s.bn, s.en, s.dbn, s.den].join(" "), go: () => bookWith("svc:" + i) }));
+  document.querySelectorAll("#faq details").forEach(det => {
+    const q = det.querySelector("summary"), a = det.querySelector("p");
+    const aText = [...a.querySelectorAll("[data-bn]")].map(x => x.dataset.bn + " " + x.dataset.en).join(" ") + " " + (a.dataset.bn || "") + " " + (a.dataset.en || "") + " " + a.textContent;
+    items.push({ group: L ? "প্রশ্নোত্তর" : "FAQ", title: q.dataset[lang], sub: "", text: q.dataset.bn + " " + q.dataset.en + " " + aText,
+      go: () => { det.open = true; jump(det); } });
+  });
+  const info = [
+    [L ? "ঠিকানা ও ম্যাপ" : "Address & map", CONFIG.address ? CONFIG.address[lang] : "", "ঠিকানা লোকেশন ম্যাপ কোথায় address location map where directions তেঁতুলতলা tetultola kda", "#contact"],
+    [L ? "জরুরি নম্বর" : "Emergency number", CONFIG.emergency || "", "জরুরি ইমার্জেন্সি অ্যাম্বুলেন্স emergency ambulance urgent", "#contact"],
+    [L ? "ফোন ও যোগাযোগ" : "Phone & contact", CONFIG.reception || "", "ফোন কল যোগাযোগ রিসেপশন নম্বর whatsapp phone call contact reception number", "#contact"],
+    [L ? "চেম্বারের সময়" : "Chamber hours", L ? "প্রতিদিন বিকাল ৩টা – রাত ৯টা" : "Daily 3 PM – 9 PM", "সময় সময়সূচি কখন খোলা চেম্বার time timing hours open when schedule", "#top"],
+    [L ? "অনলাইনে সিরিয়াল নিন" : "Book online", L ? "২ মিনিটে, ২৪ ঘণ্টা" : "2 minutes, 24/7", "সিরিয়াল বুকিং অ্যাপয়েন্টমেন্ট book booking appointment serial", "#book"]
+  ];
+  info.forEach(([title, sub, kw, href]) => items.push({ group: L ? "হাসপাতালের তথ্য" : "Hospital info", title, sub, text: title + " " + sub + " " + kw, go: () => jump(href) }));
+  return items;
+}
+function bookWith(value) {
+  const sel = document.getElementById("f-service");
+  sel.value = value; updateHint(); sel.closest("div").classList.remove("invalid");
+  jump("#book"); setTimeout(() => document.getElementById("f-name").focus({ preventScroll: true }), 500);
+}
+function jump(target) {
+  closeSearch(false);
+  const el = typeof target === "string" ? (target === "#top" ? document.body : document.querySelector(target)) : target;
+  if (el === document.body) scrollTo({ top: 0, behavior: "smooth" }); else el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function renderSearch() {
+  const L = lang === "bn", q = norm(searchEls.input.value).trim(), words = q.split(/\s+/).filter(Boolean);
+  if (!words.length) {
+    searchHits = [];
+    const deps = Object.keys(CONFIG.depts).filter(k => CONFIG.doctors.some(d => d.dept === k));
+    searchEls.res.innerHTML = `<h4>${L ? "জনপ্রিয় খোঁজ" : "Popular"}</h4><div class="search-chips">` +
+      [...deps.slice(0, 8).map(k => CONFIG.depts[k][lang]), L ? "জরুরি" : "Emergency", L ? "ঠিকানা" : "Address", L ? "সময়" : "Hours"]
+        .map(t => `<button type="button" data-q="${esc(t)}">${esc(t)}</button>`).join("") + "</div>";
+    return;
+  }
+  // Every word must match; inside each group, hits in the title or subtitle come before background-only hits.
+  const score = it => { const head = norm(it.title + " " + it.sub); return words.every(w => head.includes(w)) ? 2 : words.some(w => head.includes(w)) ? 1 : 0; };
+  const groups = [];
+  searchHits = [];
+  searchIndex().filter(it => { const t = norm(it.text + " " + it.title); return words.every(w => t.includes(w)); })
+    .forEach((it, i) => { if (!groups.includes(it.group)) groups.push(it.group); it.s = score(it); it.i = i; searchHits.push(it); });
+  searchHits.sort((a, b) => groups.indexOf(a.group) - groups.indexOf(b.group) || b.s - a.s || a.i - b.i);
+  const perGroup = {};
+  searchHits = searchHits.filter(it => (perGroup[it.group] = (perGroup[it.group] || 0) + 1) <= 8);
+  searchOn = searchHits.length ? 0 : -1;
+  if (!searchHits.length) {
+    searchEls.res.innerHTML = `<p class="empty">${L ? "কিছু পাওয়া যায়নি। অন্যভাবে লিখে দেখুন, অথবা" : "Nothing found. Try other words, or"} <a href="#" class="js-call" style="display:inline;padding:0">${L ? "রিসেপশনে কল করুন" : "call reception"}</a>${L ? "।" : "."}</p>`;
+    applyContacts(); return;
+  }
+  let html = "", last = "";
+  searchHits.forEach((it, i) => {
+    if (it.group !== last) { html += `<h4>${esc(it.group)}</h4>`; last = it.group; }
+    html += `<a href="#" role="option" data-hit="${i}"${i === searchOn ? ' class="on"' : ""}><b>${esc(it.title)}</b>${it.sub ? `<span>${esc(it.sub)}</span>` : ""}</a>`;
+  });
+  searchEls.res.innerHTML = html;
+}
+function openSearch() {
+  searchReturn = document.activeElement;
+  searchEls.ov.hidden = false; document.body.classList.add("search-open");
+  renderSearch(); setTimeout(() => searchEls.input.focus(), 30);
+}
+function closeSearch(restoreFocus = true) {
+  if (searchEls.ov.hidden) return;
+  searchEls.ov.hidden = true; document.body.classList.remove("search-open");
+  if (restoreFocus && searchReturn) searchReturn.focus();
+}
+document.getElementById("searchBtn").addEventListener("click", openSearch);
+document.getElementById("searchClose").addEventListener("click", () => closeSearch());
+searchEls.ov.addEventListener("click", e => { if (e.target === searchEls.ov) closeSearch(); });
+searchEls.input.addEventListener("input", renderSearch);
+searchEls.res.addEventListener("click", e => {
+  const chip = e.target.closest("[data-q]");
+  if (chip) { searchEls.input.value = chip.dataset.q; renderSearch(); searchEls.input.focus(); return; }
+  const a = e.target.closest("[data-hit]");
+  if (a) { e.preventDefault(); searchHits[+a.dataset.hit].go(); }
+});
+document.addEventListener("keydown", e => {
+  if (searchEls.ov.hidden) {
+    if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); openSearch(); }
+    return;
+  }
+  if (e.key === "Escape") return closeSearch();
+  if ((e.key === "ArrowDown" || e.key === "ArrowUp") && searchHits.length) {
+    e.preventDefault();
+    searchOn = (searchOn + (e.key === "ArrowDown" ? 1 : -1) + searchHits.length) % searchHits.length;
+    searchEls.res.querySelectorAll("[data-hit]").forEach(a => a.classList.toggle("on", +a.dataset.hit === searchOn));
+    searchEls.res.querySelector(".on")?.scrollIntoView({ block: "nearest" });
+  }
+  if (e.key === "Enter" && searchOn >= 0 && document.activeElement === searchEls.input) { e.preventDefault(); searchHits[searchOn].go(); }
+});
+
 // Wrap each word of a heading in .w > span so it can rise in; keeps inner markup like .accent.
 function splitWords(el) {
   let i = 0;
@@ -760,6 +907,8 @@ function applyLang() {
   // Two-tone headings: static markup written in this file (never user input).
   document.querySelectorAll("[data-bnh]").forEach(el => { el.innerHTML = lang === "bn" ? el.dataset.bnh : el.dataset.enh; });
   document.querySelectorAll("[data-bn-alt]").forEach(el => { el.alt = lang === "bn" ? el.dataset.bnAlt : el.dataset.enAlt; });
+  document.querySelectorAll("[data-bn-aria]").forEach(el => el.setAttribute("aria-label", lang === "bn" ? el.dataset.bnAria : el.dataset.enAria));
+  document.getElementById("searchInput").placeholder = lang === "bn" ? "ডাক্তার, রোগ, বিভাগ, সেবা বা প্রশ্ন লিখুন…" : "Doctor, condition, department, service or question…";
   document.querySelectorAll("[data-bnh]").forEach(splitWords);
   const depts = Object.keys(CONFIG.depts).filter(k => CONFIG.doctors.some(d => d.dept === k)).map(k => `<span>${esc(CONFIG.depts[k][lang])}</span>`).join("");
   document.getElementById("deptMarquee").innerHTML = depts + depts;
