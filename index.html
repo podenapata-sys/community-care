@@ -694,8 +694,8 @@ function renderLists() {
   applyContacts();
 }
 
-// Everything a visitor might type to find a doctor: name, specialty (bn/en), department, degrees.
-const docText = d => [d.name, d.sbn, d.sen, d.deg, (CONFIG.depts[d.dept] || {}).bn, (CONFIG.depts[d.dept] || {}).en].join(" ").toLowerCase();
+// Everything a visitor might type to find a doctor: name, other spellings, specialty (bn/en), department, degrees.
+const docText = d => [d.name, d.aka, d.sbn, d.sen, d.deg, (CONFIG.depts[d.dept] || {}).bn, (CONFIG.depts[d.dept] || {}).en].join(" ").toLowerCase();
 let docQuery = "";
 document.getElementById("docSearch").addEventListener("input", e => { docQuery = e.target.value.trim().toLowerCase(); renderLists(); });
 
