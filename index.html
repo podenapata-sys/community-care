@@ -178,6 +178,8 @@
   .doc .btn { margin: auto 0 0; }
   .doc .js-book { margin-bottom: 20px; }
   .doc .call-link { font-size: 12px; color: var(--indigo); margin: -10px 0 18px; }
+  .star-badge.sh { background: var(--ink-deep); color: #ffd36b; }
+  .card.doc.sh { border: 2px solid #e8b931; box-shadow: 0 14px 34px rgba(232,185,49,.18); }
   .star-badge { position: absolute; top: 14px; right: 14px; background: #fff; color: #8a5300; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; box-shadow: 0 2px 8px rgba(0,0,0,.06); z-index: 1; }
   #docMore[hidden] { display: none; }
   .doc-empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 30px; }
@@ -641,19 +643,21 @@ function renderLists() {
     return `<button type="button" class="chip${k === docFilter ? " on" : ""}" data-dept="${k}">${esc(label)} <span>${n}</span></button>`;
   }).join("");
 
-  // Highlighted doctors first, then source order; "all" shows 9 until expanded.
+  // Shareholders first, then highlighted doctors, then source order; "all" shows 9 until expanded.
+  const rank = d => d.shareholder ? 2 : d.highlight ? 1 : 0;
   const docs = CONFIG.doctors.map((d, i) => ({ d, i }))
     .filter(x => docFilter === "all" || x.d.dept === docFilter)
     .filter(x => !docQuery || docText(x.d).includes(docQuery))
-    .sort((x, y) => (y.d.highlight ? 1 : 0) - (x.d.highlight ? 1 : 0) || x.i - y.i);
+    .sort((x, y) => rank(y.d) - rank(x.d) || x.i - y.i);
   const limit = docFilter === "all" && !showAllDocs && !docQuery ? 9 : docs.length;
   const bnNum = n => lang === "bn" ? Number(n).toLocaleString("bn-BD") : String(n);
   const fee = f => lang === "bn" ? f.replace(/\d+/g, n => bnNum(+n)) : f;
   const time = t => lang === "bn" && t === "3pm–9pm" ? "বিকাল ৩টা – রাত ৯টা" : t;
   const statusLabel = { regular: ["নিয়মিত", "Regular"], visiting: ["ভিজিটিং কনসালট্যান্ট", "Visiting Consultant"], both: ["নিয়মিত / ভিজিটিং", "Regular / Visiting"] };
   document.getElementById("doctorsGrid").innerHTML = docs.slice(0, limit).map(({ d, i }) => `
-    <div class="card doc${d.highlight ? " hl" : ""}">
-      ${d.highlight ? `<span class="star-badge">★ ${lang === "bn" ? "বিশিষ্ট চিকিৎসক" : "Featured"}</span>` : ""}
+    <div class="card doc${d.shareholder ? " hl sh" : d.highlight ? " hl" : ""}">
+      ${d.shareholder ? `<span class="star-badge sh">★ ${lang === "bn" ? "শেয়ারহোল্ডার" : "Shareholder"}</span>`
+        : d.highlight ? `<span class="star-badge">★ ${lang === "bn" ? "বিশিষ্ট চিকিৎসক" : "Featured"}</span>` : ""}
       <div class="avatar">${esc(initials(d.name))}</div>
       <h3${d.verify === "name" ? ' class="ph"' : ""}>${esc(d.name)}</h3>
       <div class="deg${d.verify === "details" ? " ph" : ""}">${esc(d.deg)}</div>
@@ -673,7 +677,7 @@ function renderLists() {
       ? `কাউকে পাওয়া যায়নি। <a href="#" class="js-call" style="color:var(--indigo)">📞 কল করে জেনে নিন</a>`
       : `No doctor found. <a href="#" class="js-call" style="color:var(--indigo)">📞 Call us</a>`}</p>`;
   document.getElementById("docSearch").placeholder = lang === "bn" ? "🔍 ডাক্তারের নাম বা রোগ লিখুন (যেমন: শিশু, হার্ট)" : "🔍 Search doctor or specialty (e.g. child, heart)";
-  document.querySelector(".js-doc-count").dataset.to = CONFIG.doctors.length;
+  document.querySelector(".js-doc-count").dataset.to = CONFIG.doctors.filter(d => !d.notMbbs).length;
   document.querySelector(".js-dept-count").dataset.to = present.length;
   paintCounts();
   const more = document.getElementById("docMore");
@@ -714,7 +718,7 @@ document.getElementById("f-service").addEventListener("change", () => { updateHi
 
 let docFilter = "all", showAllDocs = false;
 const initials = name => {
-  const words = name.replace(/^(Dr\.|ডাঃ)\s*/, "").replace(/^Md\.\s*/, "").split(/\s+/);
+  const words = name.replace(/^(Dr\.|Prof\.|ডাঃ)\s*/, "").replace(/^Md\.\s*/, "").split(/\s+/);
   return /[A-Za-z]/.test(words[0]) ? (words[0][0] + (words[1] ? words[1][0] : "")).toUpperCase() : words[0][0];
 };
 

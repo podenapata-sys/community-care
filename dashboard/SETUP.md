@@ -138,3 +138,4 @@ firebase deploy --only firestore:rules,firestore:indexes,hosting
 > ⚠️ একই অ্যাকাউন্ট `staff` আর `doctors` দুটোতে থাকলে স্টাফ হিসেবে পূর্ণ অ্যাক্সেস পাবে। ডাক্তারকে শুধু `doctors`-এ রাখুন।
 > নাম ভুল হলে লগইন হবে কিন্তু কোনো রোগী দেখাবে না। তখন `doctor` ফিল্ডের বানান মিলিয়ে নিন।
 > উদাহরণ: dr.tanmoyankhimallick01-এর `doctor` ফিল্ড হবে `Dr. Tonmoy Mollik` (আগের "Tanmoy Mallick" নয়)।
+> kishorgain1987 → `Kishor Gain`, prokashad1173 → `Prof. Prokash Chandra Adhikari`।
