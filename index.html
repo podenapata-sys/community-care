@@ -166,6 +166,14 @@
   .svc:nth-child(4n+3) { background: var(--p3); } .svc:nth-child(4n+4) { background: var(--p4); }
   .svc .num { font-family: "Inter", sans-serif; font-size: 20px; color: rgba(13,36,112,.45); font-weight: 500; letter-spacing: .02em; }
   .svc .icon { margin: 18px 0 14px; }
+  /* optional photo per service (assets/img/svc-*.jpg); shown only once the file loads */
+  .svc { overflow: hidden; }
+  .svc-img { display: none; margin: -24px -24px 18px; aspect-ratio: 16 / 10; overflow: hidden; }
+  .svc-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
+  .svc.has-img .svc-img { display: block; }
+  .svc.has-img .icon { display: none; }
+  .svc.has-img .num { margin-bottom: 6px; }
+  .svc.has-img:hover .svc-img img { transform: scale(1.05); }
   .icon { width: 50px; height: 50px; border-radius: 14px; background: #fff; color: var(--indigo); display: grid; place-items: center; box-shadow: 0 4px 12px rgba(13,36,112,.06); }
   .icon svg { width: 24px; height: 24px; }
   .card h3 { font-size: 18px; color: var(--ink-deep); margin-bottom: 6px; }
@@ -663,6 +671,7 @@ function renderLists() {
   const two = n => lang === "bn" ? String(n).padStart(2, "0").replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]) : String(n).padStart(2, "0");
   document.getElementById("servicesGrid").innerHTML = CONFIG.services.map((s, i) => `
     <div class="card svc">
+      ${s.img ? `<figure class="svc-img"><img src="assets/img/${s.img}.jpg" width="800" height="500" alt="" onload="this.closest('.svc').classList.add('has-img')"></figure>` : ""}
       <div class="num">[${two(i + 1)}]</div>
       <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[s.icon] || ""}</svg></div>
       <h3>${esc(lang === "bn" ? s.bn : s.en)}</h3>

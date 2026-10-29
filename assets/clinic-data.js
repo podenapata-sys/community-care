@@ -12,14 +12,14 @@ window.CLINIC = {
 
   // PLACEHOLDER: confirm with the hospital
   services: [
-    { icon: "steth", bn: "মেডিসিন বিশেষজ্ঞ",       en: "General Medicine",   dbn: "জ্বর, ডায়াবেটিস, প্রেশার",          den: "Fever, diabetes, blood pressure" },
-    { icon: "heart", bn: "কিডনি (নেফ্রোলজি)",      en: "Kidney (Nephrology)", dbn: "কিডনি রোগের পরীক্ষা ও চিকিৎসা",      den: "Kidney check-ups and treatment" },
-    { icon: "lab",   bn: "প্যাথলজি ল্যাব",         en: "Pathology Lab",      dbn: "রক্ত, প্রস্রাব ও অন্যান্য টেস্ট",    den: "Blood, urine and other tests" },
-    { icon: "scan",  bn: "আল্ট্রাসনোগ্রাম ও এক্স-রে", en: "Ultrasound & X-ray", dbn: "দ্রুত ও নির্ভুল রিপোর্ট",           den: "Fast, accurate reports" },
-    { icon: "baby",  bn: "গাইনি ও প্রসূতি",        en: "Gynae & Obstetrics", dbn: "প্রসূতি সেবা ও চেকআপ",             den: "Maternity care & check-ups" },
-    { icon: "child", bn: "শিশু বিশেষজ্ঞ",          en: "Paediatrics",        dbn: "শিশুর সম্পূর্ণ চিকিৎসা",            den: "Complete child care" },
-    { icon: "bed",   bn: "ভর্তি ও কেবিন",           en: "Admission & Cabins", dbn: "পরিচ্ছন্ন ওয়ার্ড ও কেবিন",          den: "Clean wards and cabins" },
-    { icon: "amb",   bn: "জরুরি বিভাগ",            en: "Emergency",          dbn: "জরুরি প্রয়োজনে সরাসরি কল করুন",     den: "Call our emergency line directly" }
+    { icon: "steth", img: "svc-medicine", bn: "মেডিসিন বিশেষজ্ঞ",       en: "General Medicine",   dbn: "জ্বর, ডায়াবেটিস, প্রেশার",          den: "Fever, diabetes, blood pressure" },
+    { icon: "heart", img: "svc-kidney", bn: "কিডনি (নেফ্রোলজি)",      en: "Kidney (Nephrology)", dbn: "কিডনি রোগের পরীক্ষা ও চিকিৎসা",      den: "Kidney check-ups and treatment" },
+    { icon: "lab", img: "svc-lab",   bn: "প্যাথলজি ল্যাব",         en: "Pathology Lab",      dbn: "রক্ত, প্রস্রাব ও অন্যান্য টেস্ট",    den: "Blood, urine and other tests" },
+    { icon: "scan", img: "svc-ultrasound",  bn: "আল্ট্রাসনোগ্রাম ও এক্স-রে", en: "Ultrasound & X-ray", dbn: "দ্রুত ও নির্ভুল রিপোর্ট",           den: "Fast, accurate reports" },
+    { icon: "baby", img: "svc-gynae",  bn: "গাইনি ও প্রসূতি",        en: "Gynae & Obstetrics", dbn: "প্রসূতি সেবা ও চেকআপ",             den: "Maternity care & check-ups" },
+    { icon: "child", img: "svc-child", bn: "শিশু বিশেষজ্ঞ",          en: "Paediatrics",        dbn: "শিশুর সম্পূর্ণ চিকিৎসা",            den: "Complete child care" },
+    { icon: "bed", img: "svc-cabin",   bn: "ভর্তি ও কেবিন",           en: "Admission & Cabins", dbn: "পরিচ্ছন্ন ওয়ার্ড ও কেবিন",          den: "Clean wards and cabins" },
+    { icon: "amb", img: "svc-emergency",   bn: "জরুরি বিভাগ",            en: "Emergency",          dbn: "জরুরি প্রয়োজনে সরাসরি কল করুন",     den: "Call our emergency line directly" }
   ],
 
   // Departments used for the doctor filter chips (order = chip order).

@@ -13,6 +13,10 @@ The site looks for these four files. A missing file hides its slot, so the page 
 - Temporary stock photos must come from Unsplash or Pexels (free for commercial use). Note each source URL and photographer below.
 - To swap in the real hospital photos later, overwrite the file with the same name and run `firebase deploy --only hosting`.
 
+## Service card photos (optional)
+Each service card shows `svc-<name>.jpg` on top once the file exists; until then it keeps its icon.
+Files: `svc-medicine`, `svc-kidney`, `svc-lab`, `svc-ultrasound`, `svc-gynae`, `svc-child`, `svc-cabin`, `svc-emergency` (all `.jpg`, 16:10, about 800×500, under 120 KB). Add all eight together so the grid looks even.
+
 ## Credits
 - `hero.jpg`, `about.jpg`, `consult.jpg`: AI-generated placeholders supplied by FS Solutions. Replace them with real hospital photos after the visit.
 - `about.jpg` shows a generic reception, not Community Care's own, so replace it first.
