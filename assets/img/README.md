@@ -20,4 +20,5 @@ Files: `svc-medicine`, `svc-kidney`, `svc-lab`, `svc-ultrasound`, `svc-gynae`, `
 ## Credits
 - `hero.jpg`, `about.jpg`, `consult.jpg`: AI-generated placeholders supplied by FS Solutions. Replace them with real hospital photos after the visit.
 - `about.jpg` shows a generic reception, not Community Care's own, so replace it first.
+- `svc-*.jpg` (8 service cards): AI-generated placeholders supplied by FS Solutions.
 - `lab.jpg`: not added yet (its banner stays hidden).
