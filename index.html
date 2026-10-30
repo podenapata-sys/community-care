@@ -201,6 +201,7 @@
     font: 700 64px/1 "Inter", sans-serif; color: var(--navy); letter-spacing: .02em; }
   .no-photo .ini svg { width: 30px; height: 30px; color: var(--teal); opacity: .8; }
   .doc h3 { padding: 0 20px; }
+  .doc .name-alt { font-size: 12.5px; color: var(--muted); margin: 2px 20px 0; letter-spacing: .01em; }
   .doc .deg { font-size: 12px; color: var(--muted); margin: 2px 20px 6px; }
   .doc .spec { color: var(--teal); font-weight: 600; font-size: 14px; padding: 0 20px; }
   .doc .tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 8px; padding: 0 20px; }
@@ -706,8 +707,9 @@ function renderLists() {
     <div class="card doc${d.shareholder ? " hl sh" : d.highlight ? " hl" : ""}">
       ${d.shareholder ? `<span class="star-badge sh">★ ${lang === "bn" ? "শেয়ারহোল্ডার" : "Shareholder"}</span>`
         : d.highlight ? `<span class="star-badge">★ ${lang === "bn" ? "বিশিষ্ট চিকিৎসক" : "Featured"}</span>` : ""}
-      <div class="doc-media${d.photo ? "" : " no-photo"}">${d.photo ? `<img src="${esc(d.photo)}" width="600" height="800" alt="${esc(d.name)}" loading="lazy" onerror="this.parentNode.classList.add('no-photo'); this.remove()">` : ""}<span class="ini">${esc(initials(d.name))}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS.steth}</svg></span></div>
-      <h3${d.verify === "name" ? ' class="ph"' : ""}>${esc(d.name)}</h3>
+      <div class="doc-media${d.photo ? "" : " no-photo"}">${d.photo ? `<img src="${esc(d.photo)}" width="600" height="800" alt="${esc(docName(d))}" loading="lazy" onerror="this.parentNode.classList.add('no-photo'); this.remove()">` : ""}<span class="ini">${esc(initials(nameEn(d)))}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS.steth}</svg></span></div>
+      <h3${d.verify === "name" ? ' class="ph"' : ""}>${esc(docName(d))}</h3>
+      ${docNameAlt(d) !== docName(d) ? `<div class="name-alt">${esc(docNameAlt(d))}</div>` : ""}
       <div class="deg${d.verify === "details" ? " ph" : ""}">${esc(d.deg)}</div>
       <div class="spec">${esc(lang === "bn" ? d.sbn : d.sen)}</div>
       <div class="tags">
@@ -737,7 +739,7 @@ function renderLists() {
   const prev = sel.value;
   const groups = Object.keys(CONFIG.depts).filter(k => CONFIG.doctors.some(d => d.dept === k)).map(k =>
     `<optgroup label="${esc(CONFIG.depts[k][lang])}">` + CONFIG.doctors.map((d, i) => d.dept !== k ? "" :
-      `<option value="doc:${i}">${esc(d.name)} — ${esc(lang === "bn" ? d.sbn : d.sen)}</option>`).join("") + `</optgroup>`).join("");
+      `<option value="doc:${i}">${esc(docName(d))} — ${esc(lang === "bn" ? d.sbn : d.sen)}</option>`).join("") + `</optgroup>`).join("");
   sel.innerHTML = `<option value="">${lang === "bn" ? "বেছে নিন" : "Select"}</option>` + groups +
     `<optgroup label="${lang === "bn" ? "সেবা" : "Services"}">` +
     CONFIG.services.map((s, i) => `<option value="svc:${i}">${esc(lang === "bn" ? s.bn : s.en)}</option>`).join("") + `</optgroup>`;
@@ -746,8 +748,13 @@ function renderLists() {
   applyContacts();
 }
 
+// Display names: Bangla first on the Bangla site, English on the English site; d.name stays the booking key.
+const nameEn = d => d.nen || d.name;
+const nameBn = d => d.nbn || d.name;
+const docName = d => lang === "bn" ? nameBn(d) : nameEn(d);
+const docNameAlt = d => lang === "bn" ? nameEn(d) : nameBn(d);
 // Everything a visitor might type to find a doctor: name, other spellings, specialty (bn/en), department, degrees.
-const docText = d => [d.name, d.aka, d.sbn, d.sen, d.deg, (CONFIG.depts[d.dept] || {}).bn, (CONFIG.depts[d.dept] || {}).en].join(" ").toLowerCase();
+const docText = d => [d.name, d.nbn, d.nen, d.aka, d.sbn, d.sen, d.deg, (CONFIG.depts[d.dept] || {}).bn, (CONFIG.depts[d.dept] || {}).en].join(" ").toLowerCase();
 let docQuery = "";
 document.getElementById("docSearch").addEventListener("input", e => { docQuery = e.target.value.trim().toLowerCase(); renderLists(); });
 
@@ -794,8 +801,8 @@ function searchIndex() {
   const items = [];
   CONFIG.doctors.forEach((d, i) => {
     const dep = CONFIG.depts[d.dept] || {};
-    items.push({ group: L ? "ডাক্তার" : "Doctors", title: d.name, sub: (L ? d.sbn : d.sen) + (d.fee ? ` · ৳${localDigits(d.fee)}` : ""),
-      text: [d.name, d.aka, d.sbn, d.sen, d.deg, d.work, dep.bn, dep.en].join(" "), go: () => bookWith("doc:" + i) });
+    items.push({ group: L ? "ডাক্তার" : "Doctors", title: docName(d), sub: (L ? d.sbn : d.sen) + (d.fee ? ` · ৳${localDigits(d.fee)}` : ""),
+      text: [d.name, d.nbn, d.nen, d.aka, d.sbn, d.sen, d.deg, d.work, dep.bn, dep.en].join(" "), go: () => bookWith("doc:" + i) });
   });
   Object.keys(CONFIG.depts).filter(k => CONFIG.doctors.some(d => d.dept === k)).forEach(k => {
     const n = CONFIG.doctors.filter(d => d.dept === k).length;
@@ -997,6 +1004,7 @@ document.getElementById("bookingForm").addEventListener("submit", async e => {
   const doc = kind === "doc" ? CONFIG.doctors[+ix] : null;
   const svc = kind === "svc" ? CONFIG.services[+ix] : null;
   const doctor = doc ? doc.name : (svc ? svc.bn : data.service);
+  const shownDoctor = doc ? docName(doc) : doctor;
   const dept = doc ? doc.dept : null;
 
   const btn = form.querySelector("button[type=submit]");
@@ -1016,14 +1024,14 @@ document.getElementById("bookingForm").addEventListener("submit", async e => {
     const when = new Date(data.date + "T00:00:00Z").toLocaleDateString(lang === "bn" ? "bn-BD" : "en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
     const waHref = (document.querySelector(".js-wa") || {}).href || "#";
     const waText = encodeURIComponent(lang === "bn"
-      ? `আসসালামু আলাইকুম, আমি ${data.name}। ${when} ${doctor}-এর কাছে সিরিয়াল নিয়েছি${serial ? ` (নম্বর ${serial})` : ""}।`
-      : `Hello, I am ${data.name}. I booked ${doctor} for ${when}${serial ? ` (serial ${serial})` : ""}.`);
+      ? `আসসালামু আলাইকুম, আমি ${data.name}। ${when} ${shownDoctor}-এর কাছে সিরিয়াল নিয়েছি${serial ? ` (নম্বর ${serial})` : ""}।`
+      : `Hello, I am ${data.name}. I booked ${shownDoctor} for ${when}${serial ? ` (serial ${serial})` : ""}.`);
     msg.innerHTML = lang === "bn"
       ? `<div class="big">ধন্যবাদ ${esc(data.name)}! ✅</div>` +
-        (serial ? `<div>${esc(doctor)}-এর কাছে আপনার সিরিয়াল নম্বর:<span class="serial-no">${bnN(serial)}</span></div>` : `<div>আপনার অনুরোধ পেয়েছি।</div>`) +
+        (serial ? `<div>${esc(shownDoctor)}-এর কাছে আপনার সিরিয়াল নম্বর:<span class="serial-no">${bnN(serial)}</span></div>` : `<div>আপনার অনুরোধ পেয়েছি।</div>`) +
         `<div>📅 ${esc(when)} · চেম্বারে এসে এই নম্বর বলুন।</div><div>শীঘ্রই ${esc(data.phone)} নম্বরে কনফার্ম করা হবে।</div>`
       : `<div class="big">Thank you ${esc(data.name)}! ✅</div>` +
-        (serial ? `<div>Your serial number with ${esc(doctor)}:<span class="serial-no">${serial}</span></div>` : `<div>We received your request.</div>`) +
+        (serial ? `<div>Your serial number with ${esc(shownDoctor)}:<span class="serial-no">${serial}</span></div>` : `<div>We received your request.</div>`) +
         `<div>📅 ${esc(when)} · Tell this number at the chamber.</div><div>We will confirm on ${esc(data.phone)} shortly.</div>`;
     if (/wa\.me/.test(waHref)) msg.innerHTML += `<a class="btn btn-sm" target="_blank" rel="noopener" href="${esc(waHref.split("?")[0])}?text=${waText}">${lang === "bn" ? "WhatsApp-এ জানান" : "Message on WhatsApp"}</a>`;
     msg.style.display = "block";

@@ -336,6 +336,8 @@ const STATUS = {
 };
 const STATUS_COLOR = { new: "var(--s-new)", confirmed: "var(--s-conf)", arrived: "var(--s-arr)", cancelled: "var(--s-can)" };
 const deptOf = name => (CLINIC.doctors.find(d => d.name === name) || {}).dept || null;
+// Bookings store the doctor's key name; staff see the Bangla display name.
+const bnName = name => (CLINIC.doctors.find(d => d.name === name) || {}).nbn || name;
 const docLabel = name => { const d = CLINIC.doctors.find(x => x.name === name); return d ? d.sbn : ""; };
 // Doctor's visit fee when clinic-data has a single number ("800"); null for ranges ("500–1500") and services.
 const docFee = name => { const f = String((CLINIC.doctors.find(d => d.name === name) || {}).fee || ""); return /^\d+$/.test(f) ? +f : null; };
@@ -511,7 +513,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && st
 function doctorOptions(sel, withAll) {
   const docs = Object.keys(CLINIC.depts).filter(k => CLINIC.doctors.some(d => d.dept === k)).map(k =>
     `<optgroup label="${esc(CLINIC.depts[k].bn)}">` + CLINIC.doctors.filter(d => d.dept === k)
-      .map(d => `<option value="${esc(d.name)}">${esc(d.name)} — ${esc(d.sbn)}</option>`).join("") + `</optgroup>`).join("");
+      .map(d => `<option value="${esc(d.name)}">${esc(bnName(d.name))} — ${esc(d.sbn)}</option>`).join("") + `</optgroup>`).join("");
   const svcs = CLINIC.services.map(s => `<option value="${esc(s.bn)}">${esc(s.bn)}</option>`).join("");
   sel.innerHTML = (withAll ? `<option value="">সব ডাক্তার ও সেবা</option>` : `<option value="">বেছে নিন</option>`) +
     docs + `<optgroup label="সেবা">${svcs}</optgroup>`;
@@ -526,7 +528,7 @@ function filtered() {
 
 function waLink(r) {
   const text = `আসসালামু আলাইকুম ${r.patient_name},\n${CLINIC.name.bn} থেকে বলছি।\n` +
-    `${dateBn(r.booking_date)} তারিখে ${r.doctor}-এর কাছে আপনার সিরিয়াল নম্বর *${bn(r.serial_no)}* কনফার্ম করা হয়েছে।\n` +
+    `${dateBn(r.booking_date)} তারিখে ${bnName(r.doctor)}-এর কাছে আপনার সিরিয়াল নম্বর *${bn(r.serial_no)}* কনফার্ম করা হয়েছে।\n` +
     `ঠিকানা: ${CLINIC.address.bn}\nপ্রয়োজনে কল করুন: ${fmtPhone(CLINIC.reception)}\nধন্যবাদ।`;
   return `https://wa.me/88${r.phone}?text=${encodeURIComponent(text)}`;
 }
@@ -556,7 +558,7 @@ function renderSerials() {
   rows.forEach(r => (groups[r.doctor] = groups[r.doctor] || []).push(r));
   $("#list").innerHTML = Object.entries(groups).map(([doc, list]) => `
     <div class="group">
-      <h3>${esc(doc)} <span>${esc(docLabel(doc))} · ${bn(list.length)} জন</span></h3>
+      <h3>${esc(bnName(doc))} <span>${esc(docLabel(doc))} · ${bn(list.length)} জন</span></h3>
       ${list.map(r => `
       <div class="row${r.status === "new" ? " is-new" : ""}${state.flash.has(r.id) ? " flash" : ""}" data-id="${esc(r.id)}">
         <div class="serial num">${bn(r.serial_no)}</div>
@@ -622,7 +624,7 @@ async function renderBin() {
     <div class="row" data-id="${esc(r.id)}">
       <div class="serial num">${bn(r.serial_no)}</div>
       <div class="who"><b>${esc(r.patient_name)}</b>${r.phone ? `<small>📞 ${esc(fmtPhone(r.phone))}</small>` : `<span class="nophone">ফোন নেই</span>`}</div>
-      <div class="meta">${esc(r.doctor)}<br><small>${dateShort(r.booking_date)} · মুছেছেন ${esc(r.deleted_by || "—")}, ${dateShort(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" }).format(new Date(r.deleted_at)))} ${timeBn(r.deleted_at)}</small></div>
+      <div class="meta">${esc(bnName(r.doctor))}<br><small>${dateShort(r.booking_date)} · মুছেছেন ${esc(r.deleted_by || "—")}, ${dateShort(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" }).format(new Date(r.deleted_at)))} ${timeBn(r.deleted_at)}</small></div>
       <div class="stcell"><span class="status st-cancelled">আর ${bn(left)} দিন</span></div>
       <div class="acts"><button class="btn btn-ghost btn-sm" data-act="restore">↺ ফিরিয়ে আনুন</button></div>
     </div>`;
@@ -688,7 +690,7 @@ $("#aPhone").addEventListener("input", async e => {
   const people = []; past.forEach(r => { if (!people.some(x => x.patient_name === r.patient_name)) people.push(r); });
   box.innerHTML = `<b>পুরনো রোগী</b> — নাম বেছে নিন:
     <div class="names">${people.map((r, i) => `<button type="button" data-i="${i}">${esc(r.patient_name)}${r.age != null ? ` (${bn(r.age)})` : ""}</button>`).join("")}</div>
-    <ul>${past.slice(0, 5).map(r => `<li>${dateShort(r.booking_date)} · ${esc(r.doctor)} · ${STATUS[r.status] ? STATUS[r.status].bn : esc(r.status)}</li>`).join("")}</ul>`;
+    <ul>${past.slice(0, 5).map(r => `<li>${dateShort(r.booking_date)} · ${esc(bnName(r.doctor))} · ${STATUS[r.status] ? STATUS[r.status].bn : esc(r.status)}</li>`).join("")}</ul>`;
   box.classList.remove("hidden");
   box.querySelectorAll(".names button").forEach(b => b.addEventListener("click", () => {
     const r = people[+b.dataset.i]; $("#aName").value = r.patient_name; $("#aAge").value = r.age ?? "";
@@ -724,7 +726,7 @@ $("#printBtn").addEventListener("click", () => {
   const rows = filtered().filter(r => r.status !== "cancelled").sort((a, b) => a.doctor.localeCompare(b.doctor) || a.serial_no - b.serial_no);
   const groups = {}; rows.forEach(r => (groups[r.doctor] = groups[r.doctor] || []).push(r));
   $("#printArea").innerHTML = `<h1>${esc(CLINIC.name.bn)} — সিরিয়াল তালিকা, ${dateBn(state.date)}</h1>` +
-    (rows.length ? Object.entries(groups).map(([doc, list]) => `<section><h2>${esc(doc)} (${bn(list.length)} জন)</h2>
+    (rows.length ? Object.entries(groups).map(([doc, list]) => `<section><h2>${esc(bnName(doc))} (${bn(list.length)} জন)</h2>
       <table><tr><th>সিরিয়াল</th><th>রোগীর নাম</th><th>ফোন</th><th>বয়স</th><th>স্ট্যাটাস</th><th>ফি</th><th>আদায়</th><th>নোট</th></tr>
       ${list.map(r => `<tr><td>${bn(r.serial_no)}</td><td>${esc(r.patient_name)}</td><td>${r.phone ? esc(fmtPhone(r.phone)) : "—"}</td><td>${r.age != null ? bn(r.age) : ""}</td><td>${STATUS[r.status].bn}</td><td>${r.fee != null ? taka(r.fee) : ""}</td><td>${r.paid ? "✓" : ""}</td><td>${esc(r.note || "")}</td></tr>`).join("")}
       </table></section>`).join("") : "<p>কোনো সিরিয়াল নেই।</p>");
@@ -887,7 +889,7 @@ async function enterApp(role) {
   state.role = role && role.role === "doctor" ? "doctor" : "staff";
   state.myDoctor = state.role === "doctor" ? role.doctor : null;
   document.body.classList.toggle("doctor-mode", isDoctorView());
-  if (isDoctorView()) { state.doctor = state.myDoctor; $("#roleBadge").textContent = "👨‍⚕️ " + state.myDoctor; }
+  if (isDoctorView()) { state.doctor = state.myDoctor; $("#roleBadge").textContent = "👨‍⚕️ " + bnName(state.myDoctor); }
   $("#roleBadge").classList.toggle("hidden", !isDoctorView());
   $("#loginView").classList.add("hidden"); $("#appView").classList.remove("hidden");
   $("#demoBadge").classList.toggle("hidden", !store.demo); $("#simBtn").classList.toggle("hidden", !store.demo);

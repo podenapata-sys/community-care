@@ -163,7 +163,8 @@ async function bookOnline(p, name, phone, docIndex = 0) {
   ok(await drPage.locator("#addBtn").isHidden() && await drPage.locator(".tab[data-tab=bin]").isHidden(), "doctor has no add button or bin");
   const otherActs = await drPage.locator("#list [data-act]:not([data-act=arrived])").count();
   ok(otherActs === 0 && await drPage.locator("#list [data-act=arrived]").count() > 0, "doctor rows show only ★ এসেছেন (" + otherActs + " other buttons)");
-  ok((await drPage.textContent("#roleBadge")).includes(docName), "doctor name badge shown");
+  const docBn = await drPage.evaluate(n => (window.CLINIC.doctors.find(d => d.name === n) || {}).nbn || n, docName);
+  ok((await drPage.textContent("#roleBadge")).includes(docBn), "doctor name badge shown (Bangla)");
   const drRow = drPage.locator("#list .row", { has: drPage.locator("[data-act=arrived]") }).first();
   const drRowId = await drRow.getAttribute("data-id");
   await drRow.locator("[data-act=arrived]").click(); await drPage.waitForTimeout(1500);
