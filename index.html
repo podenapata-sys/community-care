@@ -189,13 +189,17 @@
   .chip.on { background: var(--ink-deep); border-color: var(--ink-deep); color: #fff; }
   .chip.on span { color: rgba(255,255,255,.75); }
   .doc { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0; overflow: hidden; }
-  .doc::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 118px;
-    background: linear-gradient(135deg, var(--p1), var(--p3)); }
-  .doc.hl::before { background: linear-gradient(135deg, #dff4fc, #e4e9ff); }
   .doc > * { position: relative; }
-  .avatar { width: 104px; height: 104px; border-radius: 50%; margin: 52px auto 14px; background: #fff; display: grid; place-items: center;
-    color: var(--navy); font-size: 32px; font-weight: 700; font-family: "Inter", sans-serif; box-shadow: 0 10px 26px rgba(13,36,112,.14); border: 4px solid #fff; }
-  .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+  /* top half of the card: the doctor's photo, or a large initials panel until a photo is added */
+  .doc-media { width: 100%; aspect-ratio: 4 / 3.4; margin-bottom: 16px; overflow: hidden; background: linear-gradient(135deg, var(--p1), var(--p3)); }
+  .doc.hl .doc-media { background: linear-gradient(135deg, #dff4fc, #dfe5ff); }
+  .doc.sh .doc-media { background: linear-gradient(135deg, #fff6dc, #e8ecff); }
+  .doc-media img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; display: block; transition: transform .5s ease; }
+  .doc:hover .doc-media img { transform: scale(1.04); }
+  .doc-media .ini { display: none; }
+  .no-photo .ini { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    font: 700 64px/1 "Inter", sans-serif; color: var(--navy); letter-spacing: .02em; }
+  .no-photo .ini svg { width: 30px; height: 30px; color: var(--teal); opacity: .8; }
   .doc h3 { padding: 0 20px; }
   .doc .deg { font-size: 12px; color: var(--muted); margin: 2px 20px 6px; }
   .doc .spec { color: var(--teal); font-weight: 600; font-size: 14px; padding: 0 20px; }
@@ -208,7 +212,7 @@
   .doc .call-link { font-size: 12px; color: var(--indigo); margin: -10px 0 18px; }
   .star-badge.sh { background: var(--ink-deep); color: #ffd36b; }
   .card.doc.sh { border: 2px solid #e8b931; box-shadow: 0 14px 34px rgba(232,185,49,.18); }
-  .star-badge { position: absolute; top: 14px; right: 14px; background: #fff; color: #8a5300; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; box-shadow: 0 2px 8px rgba(0,0,0,.06); z-index: 1; }
+  .star-badge { position: absolute; top: 14px; right: 14px; background: #fff; color: #8a5300; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; box-shadow: 0 2px 10px rgba(0,0,0,.18); z-index: 1; }
   #docMore[hidden] { display: none; }
   .doc-empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 30px; }
 
@@ -327,6 +331,7 @@
   @keyframes mq { to { transform: translateX(-50%); } }
   .hero::before { transform: translateY(var(--py, 0px)); }
   @media (prefers-reduced-motion: reduce) {
+    .doc:hover .doc-media img { transform: none; }
     .js .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; }
     .js .reveal .w > span, .js .stagger > *, .js .ph-img.reveal img { transform: none !important; opacity: 1 !important; transition: none !important; }
     .marquee-track { animation: none; } .marquee { overflow-x: auto; } .hero::before { transform: none; }
@@ -701,7 +706,7 @@ function renderLists() {
     <div class="card doc${d.shareholder ? " hl sh" : d.highlight ? " hl" : ""}">
       ${d.shareholder ? `<span class="star-badge sh">★ ${lang === "bn" ? "শেয়ারহোল্ডার" : "Shareholder"}</span>`
         : d.highlight ? `<span class="star-badge">★ ${lang === "bn" ? "বিশিষ্ট চিকিৎসক" : "Featured"}</span>` : ""}
-      <div class="avatar">${d.photo ? `<img src="${esc(d.photo)}" width="104" height="104" alt="${esc(d.name)}" loading="lazy" onerror="this.replaceWith(document.createTextNode('${esc(initials(d.name))}'))">` : esc(initials(d.name))}</div>
+      <div class="doc-media${d.photo ? "" : " no-photo"}">${d.photo ? `<img src="${esc(d.photo)}" width="600" height="800" alt="${esc(d.name)}" loading="lazy" onerror="this.parentNode.classList.add('no-photo'); this.remove()">` : ""}<span class="ini">${esc(initials(d.name))}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS.steth}</svg></span></div>
       <h3${d.verify === "name" ? ' class="ph"' : ""}>${esc(d.name)}</h3>
       <div class="deg${d.verify === "details" ? " ph" : ""}">${esc(d.deg)}</div>
       <div class="spec">${esc(lang === "bn" ? d.sbn : d.sen)}</div>

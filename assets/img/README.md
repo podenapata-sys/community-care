@@ -17,6 +17,11 @@ The site looks for these four files. A missing file hides its slot, so the page 
 Each service card shows `svc-<name>.jpg` on top once the file exists; until then it keeps its icon.
 Files: `svc-medicine`, `svc-kidney`, `svc-lab`, `svc-ultrasound`, `svc-gynae`, `svc-child`, `svc-cabin`, `svc-emergency` (all `.jpg`, 16:10, about 800×500, under 120 KB). Add all eight together so the grid looks even.
 
+## Doctor photos
+Put a portrait at `assets/img/doctors/<name>.jpg` and add `photo: "assets/img/doctors/<name>.jpg"` to that doctor in `assets/clinic-data.js`.
+It fills the top half of the doctor's card; without it the card shows large initials.
+Best: front-facing, plain light background, head and shoulders, at least 600 px wide (resize to 600 px wide, under 80 KB). Ask the doctor's permission first.
+
 ## Credits
 - `hero.jpg`, `about.jpg`, `consult.jpg`: AI-generated placeholders supplied by FS Solutions. Replace them with real hospital photos after the visit.
 - `about.jpg` shows a generic reception, not Community Care's own, so replace it first.
