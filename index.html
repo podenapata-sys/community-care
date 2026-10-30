@@ -693,13 +693,13 @@ function renderLists() {
     return `<button type="button" class="chip${k === docFilter ? " on" : ""}" data-dept="${k}">${esc(label)} <span>${n}</span></button>`;
   }).join("");
 
-  // Shareholders first, then highlighted doctors, then source order; "all" shows 9 until expanded.
+  // Shareholders first, then highlighted doctors, then source order; "all" shows 12 until expanded.
   const rank = d => d.shareholder ? 2 : d.highlight ? 1 : 0;
   const docs = CONFIG.doctors.map((d, i) => ({ d, i }))
     .filter(x => docFilter === "all" || x.d.dept === docFilter)
     .filter(x => !docQuery || docText(x.d).includes(docQuery))
     .sort((x, y) => rank(y.d) - rank(x.d) || (x.d.shOrder || 99) - (y.d.shOrder || 99) || x.i - y.i);
-  const limit = docFilter === "all" && !showAllDocs && !docQuery ? 9 : docs.length;
+  const limit = docFilter === "all" && !showAllDocs && !docQuery ? 12 : docs.length;
   const bnNum = n => lang === "bn" ? Number(n).toLocaleString("bn-BD") : String(n);
   const fee = f => lang === "bn" ? f.replace(/\d+/g, n => bnNum(+n)) : f;
   const time = t => lang === "bn" && t === "3pm–9pm" ? "বিকাল ৩টা – রাত ৯টা" : t;
