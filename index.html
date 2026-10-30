@@ -195,6 +195,7 @@
   .doc > * { position: relative; }
   .avatar { width: 104px; height: 104px; border-radius: 50%; margin: 52px auto 14px; background: #fff; display: grid; place-items: center;
     color: var(--navy); font-size: 32px; font-weight: 700; font-family: "Inter", sans-serif; box-shadow: 0 10px 26px rgba(13,36,112,.14); border: 4px solid #fff; }
+  .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
   .doc h3 { padding: 0 20px; }
   .doc .deg { font-size: 12px; color: var(--muted); margin: 2px 20px 6px; }
   .doc .spec { color: var(--teal); font-weight: 600; font-size: 14px; padding: 0 20px; }
@@ -700,7 +701,7 @@ function renderLists() {
     <div class="card doc${d.shareholder ? " hl sh" : d.highlight ? " hl" : ""}">
       ${d.shareholder ? `<span class="star-badge sh">★ ${lang === "bn" ? "শেয়ারহোল্ডার" : "Shareholder"}</span>`
         : d.highlight ? `<span class="star-badge">★ ${lang === "bn" ? "বিশিষ্ট চিকিৎসক" : "Featured"}</span>` : ""}
-      <div class="avatar">${esc(initials(d.name))}</div>
+      <div class="avatar">${d.photo ? `<img src="${esc(d.photo)}" width="104" height="104" alt="${esc(d.name)}" loading="lazy" onerror="this.replaceWith(document.createTextNode('${esc(initials(d.name))}'))">` : esc(initials(d.name))}</div>
       <h3${d.verify === "name" ? ' class="ph"' : ""}>${esc(d.name)}</h3>
       <div class="deg${d.verify === "details" ? " ph" : ""}">${esc(d.deg)}</div>
       <div class="spec">${esc(lang === "bn" ? d.sbn : d.sen)}</div>

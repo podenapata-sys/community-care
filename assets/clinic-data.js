@@ -45,13 +45,14 @@ window.CLINIC = {
   // From the hospital's doctor lists (two flyers). Names exactly as printed.
   // status: "regular" | "visiting" | "both"; time: chamber hours or null; fee in BDT.
   // shareholder: hospital shareholder, shown first with a ★ Shareholder badge.
+  // photo: optional portrait (square, about 320px); the initials circle shows without it.
   // notMbbs: not an MBBS doctor (no "Dr."), left out of the "specialist doctors" count.
   // highlight: shown first with a ★ badge. verify: "name" | "details" = still to
   // confirm with the hospital (rendered with an orange outline).
   doctors: [
     // ---- Shareholders ----
     { name: "Prof. Prokash Chandra Adhikari", aka: "প্রফেসর প্রকাশ চন্দ্র অধিকারী Prokash Adhikary mental health মাদকাসক্তি addiction শিশুর আচরণগত সমস্যা child behaviour মাইন্ড এন্ড বডি", dept: "psych", status: "regular", time: "3pm–9pm", fee: "500", shareholder: true, notMbbs: true, deg: "B.Sc (Hons), M.Sc (Psychology), University of Dhaka; BCS (Education)", sbn: "মনোবিজ্ঞানী — ডিপ্রেশন, এনজাইটি ও কাউন্সেলিং", sen: "Psychologist — depression, anxiety & counselling", work: "Professor, Govt. Sundarban Adarsha College, Khulna" },
-    { name: "Kishor Gain", aka: "কিশোর গাইন Kishore", dept: "med", status: "regular", time: "3pm–9pm", fee: null, shareholder: true, notMbbs: true, deg: "Sub Asstt. Community Medical Officer", sbn: "উপ-সহকারী কমিউনিটি মেডিকেল অফিসার (SACMO)", sen: "Sub Assistant Community Medical Officer (SACMO)", work: "Upazila Health Complex, Dacope, Khulna" },
+    { name: "Kishor Gain", photo: "assets/img/doctors/kishor-gain.jpg", aka: "কিশোর গাইন Kishore", dept: "med", status: "regular", time: "3pm–9pm", fee: null, shareholder: true, notMbbs: true, deg: "Sub Asstt. Community Medical Officer", sbn: "উপ-সহকারী কমিউনিটি মেডিকেল অফিসার (SACMO)", sen: "Sub Assistant Community Medical Officer (SACMO)", work: "Upazila Health Complex, Dacope, Khulna" },
     // ---- Flyer 2 (Community Care header) ----
     { name: "Dr. Sharup Chandra Poddar", dept: "med", status: "regular", time: "3pm–9pm", fee: "800", deg: "MBBS, BCS (Health), FCPS (Medicine), MD (Hematology), MACP (USA)", sbn: "মেডিসিন ও রক্তরোগ বিশেষজ্ঞ", sen: "Medicine & Hematology Specialist", work: "Khulna Medical College Hospital, Khulna" },
     { name: "ডাঃ এস এম মনির হোসেন (রাজা)", dept: "neuro", status: "regular", time: "3pm–9pm", fee: "800", deg: "এমবিবিএস, বিসিএস (স্বাস্থ্য), এমএস (নিউরোসার্জারি), সহকারী অধ্যাপক", sbn: "নিউরো ও স্পাইন সার্জন", sen: "Neuro & Spine Surgeon", work: "খুলনা বিশেষায়িত হাসপাতাল, খুলনা", verify: "name" },
