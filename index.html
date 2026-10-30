@@ -706,8 +706,7 @@ function renderLists() {
   const statusLabel = { regular: ["নিয়মিত", "Regular"], visiting: ["ভিজিটিং কনসালট্যান্ট", "Visiting Consultant"], both: ["নিয়মিত / ভিজিটিং", "Regular / Visiting"] };
   document.getElementById("doctorsGrid").innerHTML = docs.slice(0, limit).map(({ d, i }) => `
     <div class="card doc${d.shareholder ? " hl sh" : d.highlight ? " hl" : ""}">
-      ${d.shareholder ? `<span class="star-badge sh">★ ${lang === "bn" ? "শেয়ারহোল্ডার" : "Shareholder"}</span>`
-        : d.highlight ? `<span class="star-badge">★ ${lang === "bn" ? "বিশিষ্ট চিকিৎসক" : "Featured"}</span>` : ""}
+      ${!d.shareholder && d.highlight ? `<span class="star-badge">★ ${lang === "bn" ? "বিশিষ্ট চিকিৎসক" : "Featured"}</span>` : ""}
       <div class="doc-media${d.photo ? "" : " no-photo"}">${d.photo ? `<img src="${esc(d.photo)}" width="600" height="800" alt="${esc(docName(d))}" loading="lazy" onerror="this.parentNode.classList.add('no-photo'); this.remove()">` : ""}<span class="ini">${esc(initials(nameEn(d)))}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS.steth}</svg></span></div>
       <h3${d.verify === "name" ? ' class="ph"' : ""}>${esc(docName(d))}</h3>
       ${docNameAlt(d) !== docName(d) ? `<div class="name-alt">${esc(docNameAlt(d))}</div>` : ""}
