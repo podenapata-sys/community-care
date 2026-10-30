@@ -202,6 +202,7 @@
   .no-photo .ini svg { width: 30px; height: 30px; color: var(--teal); opacity: .8; }
   .doc h3 { padding: 0 20px; }
   .doc .name-alt { font-size: 12.5px; color: var(--muted); margin: 2px 20px 0; letter-spacing: .01em; }
+  .doc .reg { font-size: 12.5px; font-weight: 600; color: var(--navy); margin: 4px 20px 0; }
   .doc .deg { font-size: 12px; color: var(--muted); margin: 2px 20px 6px; }
   .doc .spec { color: var(--teal); font-weight: 600; font-size: 14px; padding: 0 20px; }
   .doc .tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 8px; padding: 0 20px; }
@@ -710,6 +711,7 @@ function renderLists() {
       <div class="doc-media${d.photo ? "" : " no-photo"}">${d.photo ? `<img src="${esc(d.photo)}" width="600" height="800" alt="${esc(docName(d))}" loading="lazy" onerror="this.parentNode.classList.add('no-photo'); this.remove()">` : ""}<span class="ini">${esc(initials(nameEn(d)))}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS.steth}</svg></span></div>
       <h3${d.verify === "name" ? ' class="ph"' : ""}>${esc(docName(d))}</h3>
       ${docNameAlt(d) !== docName(d) ? `<div class="name-alt">${esc(docNameAlt(d))}</div>` : ""}
+      ${d.reg ? `<div class="reg">${esc(d.reg)}</div>` : ""}
       <div class="deg${d.verify === "details" ? " ph" : ""}">${esc(d.deg)}</div>
       <div class="spec">${esc(lang === "bn" ? d.sbn : d.sen)}</div>
       <div class="tags">
@@ -754,7 +756,7 @@ const nameBn = d => d.nbn || d.name;
 const docName = d => lang === "bn" ? nameBn(d) : nameEn(d);
 const docNameAlt = d => lang === "bn" ? nameEn(d) : nameBn(d);
 // Everything a visitor might type to find a doctor: name, other spellings, specialty (bn/en), department, degrees.
-const docText = d => [d.name, d.nbn, d.nen, d.aka, d.sbn, d.sen, d.deg, (CONFIG.depts[d.dept] || {}).bn, (CONFIG.depts[d.dept] || {}).en].join(" ").toLowerCase();
+const docText = d => [d.name, d.nbn, d.nen, d.aka, d.reg, d.sbn, d.sen, d.deg, (CONFIG.depts[d.dept] || {}).bn, (CONFIG.depts[d.dept] || {}).en].join(" ").toLowerCase();
 let docQuery = "";
 document.getElementById("docSearch").addEventListener("input", e => { docQuery = e.target.value.trim().toLowerCase(); renderLists(); });
 

@@ -48,6 +48,7 @@ window.CLINIC = {
   // nbn / nen: the name shown on the site in Bangla / English (nen defaults to name).
   // shareholder: hospital shareholder, shown first with a ★ Shareholder badge.
   // shOrder: optional position among shareholders (1 = first); the rest follow in list order.
+  // reg: optional line shown under the name (e.g. registration number).
   // photo: optional portrait (square, about 320px); the initials circle shows without it.
   // notMbbs: not an MBBS doctor (no "Dr."), left out of the "specialist doctors" count.
   // highlight: shown first with a ★ badge. verify: "name" | "details" = still to
@@ -55,7 +56,7 @@ window.CLINIC = {
   doctors: [
     // ---- Shareholders ----
     { name: "Prof. Prokash Chandra Adhikari", shareholder: true, shOrder: 8, nbn: "প্রফেসর প্রকাশ চন্দ্র অধিকারী", aka: "প্রফেসর প্রকাশ চন্দ্র অধিকারী Prokash Adhikary mental health মাদকাসক্তি addiction শিশুর আচরণগত সমস্যা child behaviour মাইন্ড এন্ড বডি", dept: "psych", status: "regular", time: "3pm–9pm", fee: "500", notMbbs: true, deg: "B.Sc (Hons), M.Sc (Psychology), University of Dhaka; BCS (Education)", sbn: "মনোবিজ্ঞানী — ডিপ্রেশন, এনজাইটি ও কাউন্সেলিং", sen: "Psychologist — depression, anxiety & counselling", work: "Professor, Govt. Sundarban Adarsha College, Khulna" },
-    { name: "Kishor Gain", shareholder: true, shOrder: 7, nbn: "কিশোর গাইন", photo: "assets/img/doctors/kishor-gain-2.jpg", aka: "কিশোর গাইন Kishore", dept: "med", status: "regular", time: "3pm–9pm", fee: null, notMbbs: true, deg: "Sub Asstt. Community Medical Officer", sbn: "উপ-সহকারী কমিউনিটি মেডিকেল অফিসার (SACMO)", sen: "Sub Assistant Community Medical Officer (SACMO)", work: "Upazila Health Complex, Dacope, Khulna" },
+    { name: "Kishor Gain", reg: "DMF (Dhaka) Reg. No. 6317", shareholder: true, shOrder: 7, nbn: "কিশোর গাইন", photo: "assets/img/doctors/kishor-gain-2.jpg", aka: "কিশোর গাইন Kishore", dept: "med", status: "regular", time: "3pm–9pm", fee: null, notMbbs: true, deg: "Sub Asstt. Community Medical Officer", sbn: "উপ-সহকারী কমিউনিটি মেডিকেল অফিসার (SACMO)", sen: "Sub Assistant Community Medical Officer (SACMO)", work: "Upazila Health Complex, Dacope, Khulna" },
     // ---- Flyer 2 (Community Care header) ----
     { name: "Dr. Sharup Chandra Poddar", shareholder: true, shOrder: 1, nbn: "ডাঃ স্বরূপ চন্দ্র পোদ্দার", dept: "med", status: "regular", time: "3pm–9pm", fee: "800", deg: "MBBS, BCS (Health), FCPS (Medicine), MD (Hematology), MACP (USA)", sbn: "মেডিসিন ও রক্তরোগ বিশেষজ্ঞ", sen: "Medicine & Hematology Specialist", work: "Khulna Medical College Hospital, Khulna" },
     { name: "ডাঃ এস এম মনির হোসেন (রাজা)", photo: "assets/img/doctors/monir-hossain-reza.jpg", shareholder: true, shOrder: 2, nbn: "ডাঃ এস. এম. মনির হোসেন (রেজা)", nen: "Dr. S. M. Monir Hossain (Reza)", aka: "Dr. S M Monir Hossain Reza Raja রেজা Monir Hossen", dept: "neuro", status: "regular", time: "3pm–9pm", fee: "800", deg: "এমবিবিএস, বিসিএস (স্বাস্থ্য), এমএস (নিউরোসার্জারি), সহকারী অধ্যাপক", sbn: "নিউরো ও স্পাইন সার্জন", sen: "Neuro & Spine Surgeon", work: "খুলনা বিশেষায়িত হাসপাতাল, খুলনা" },
