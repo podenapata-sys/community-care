@@ -85,9 +85,9 @@ async function roleOf(user) {
   if (!user) return null;
   const get = col => fs.getDoc(fs.doc(db, col, user.uid)).catch(() => null);
   const s = await get("staff");
-  if (s && s.exists()) return { role: "staff" };
+  if (s && s.exists()) return { role: "staff", email: user.email };
   const d = await get("doctors");
-  if (d && d.exists() && d.data().doctor) { myDoctor = d.data().doctor; return { role: "doctor", doctor: myDoctor }; }
+  if (d && d.exists() && d.data().doctor) { myDoctor = d.data().doctor; return { role: "doctor", doctor: myDoctor, email: user.email }; }
   return null;
 }
 

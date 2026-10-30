@@ -238,6 +238,7 @@
         </div>
       </div>
       <div class="chips" id="statusChips"></div>
+      <div id="diag" style="font-size:11.5px;color:var(--muted);margin:-4px 0 10px;word-break:break-all"></div>
       <div id="list"></div>
     </section>
 
@@ -580,9 +581,16 @@ function renderSerials() {
 
 async function loadDay() {
   $("#fDate").value = state.date;
+  let err = null;
   try { state.rows = await store.listDay(state.date); }
-  catch (e) { state.rows = []; toast("সমস্যা", "ডেটা লোড করা যায়নি: " + e.message); }
+  catch (e) { state.rows = []; err = e; toast("সমস্যা", "ডেটা লোড করা যায়নি: " + e.message); }
   renderSerials();
+  // Keep a load error on screen (a toast alone is easy to miss), and show which account/project is connected.
+  if (err) $("#list").innerHTML = `<div class="empty" style="color:#9b1c31">⚠️ ডেটা লোড করা যায়নি: ${esc(err.code || "")} ${esc(err.message)}</div>`;
+  if (!store.demo && !isDoctorView()) {
+    const proj = (CFG.firebase && CFG.firebase.projectId) || "—";
+    $("#diag").textContent = `সংযুক্ত: ${state.email || "—"} · ${state.role} · ${proj} · এই তারিখে ${bn(state.rows.length)}টি${err ? " · ত্রুটি" : ""}`;
+  }
 }
 
 async function setStatus(id, status) {
@@ -888,6 +896,7 @@ $("#logoutBtn").addEventListener("click", async () => { await store.signOut(); l
 async function enterApp(role) {
   state.role = role && role.role === "doctor" ? "doctor" : "staff";
   state.myDoctor = state.role === "doctor" ? role.doctor : null;
+  state.email = role && role.email || null;
   document.body.classList.toggle("doctor-mode", isDoctorView());
   if (isDoctorView()) { state.doctor = state.myDoctor; $("#roleBadge").textContent = "👨‍⚕️ " + bnName(state.myDoctor); }
   $("#roleBadge").classList.toggle("hidden", !isDoctorView());

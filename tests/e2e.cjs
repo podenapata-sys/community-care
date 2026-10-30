@@ -10,7 +10,9 @@ const PROJECT = "demo-cc";
 const SDK = fs.readFileSync(process.env.SDK_BUNDLE, "utf8");
 const TEST_CONFIG = `window.APP_CONFIG = { firebase: { apiKey: "fake-key", authDomain: "${PROJECT}.firebaseapp.com",
   projectId: "${PROJECT}", appId: "test", emulator: { firestore: 8080, auth: 9099 } } };`;
-const tomorrow = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+// "Tomorrow" in Dhaka time, the same clock the site and dashboard use (UTC can still be a day behind).
+const dhakaToday = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" }).format(new Date());
+const tomorrow = new Date(Date.parse(dhakaToday + "T00:00:00Z") + 864e5).toISOString().slice(0, 10);
 
 let failed = 0;
 const ok = (cond, msg) => { console.log((cond ? "PASS " : "FAIL ") + msg); if (!cond) failed++; };
