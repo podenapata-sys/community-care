@@ -696,7 +696,7 @@ function renderLists() {
   const docs = CONFIG.doctors.map((d, i) => ({ d, i }))
     .filter(x => docFilter === "all" || x.d.dept === docFilter)
     .filter(x => !docQuery || docText(x.d).includes(docQuery))
-    .sort((x, y) => rank(y.d) - rank(x.d) || x.i - y.i);
+    .sort((x, y) => rank(y.d) - rank(x.d) || (x.d.shOrder || 99) - (y.d.shOrder || 99) || x.i - y.i);
   const limit = docFilter === "all" && !showAllDocs && !docQuery ? 9 : docs.length;
   const bnNum = n => lang === "bn" ? Number(n).toLocaleString("bn-BD") : String(n);
   const fee = f => lang === "bn" ? f.replace(/\d+/g, n => bnNum(+n)) : f;
