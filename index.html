@@ -212,6 +212,8 @@
   .doc .btn { margin: auto 0 0; }
   .doc .js-book { margin-bottom: 20px; }
   .doc .call-link { font-size: 12px; color: var(--indigo); margin: -10px 0 18px; }
+  .doc .profile-link { font-size: 14px; font-weight: 600; color: var(--indigo); margin: -4px 0 12px; }
+  .doc .profile-link:hover { text-decoration: underline; }
   .star-badge.sh { background: var(--ink-deep); color: #ffd36b; }
   .card.doc.sh { border: 2px solid #e8b931; box-shadow: 0 14px 34px rgba(232,185,49,.18); }
   .star-badge { position: absolute; top: 14px; right: 14px; background: #fff; color: #8a5300; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; box-shadow: 0 2px 10px rgba(0,0,0,.18); z-index: 1; }
@@ -722,6 +724,7 @@ function renderLists() {
         ${d.time ? `<span>🕒 ${esc(time(d.time))}</span>` : ""}
         ${d.fee ? `<span>💳 ${lang === "bn" ? "ভিজিট ফি" : "Fee"} ৳${esc(fee(d.fee))}</span>` : ""}
       </div>
+      ${d.page ? `<a href="${esc(d.page)}" class="profile-link">${lang === "bn" ? "সম্পূর্ণ প্রোফাইল দেখুন →" : "View full profile →"}</a>` : ""}
       <a href="#book" class="btn btn-primary btn-sm js-book" data-doc="${i}">${lang === "bn" ? "সিরিয়াল নিন" : "Book"}</a>
       ${d.time ? "" : `<a href="#" class="call-link js-call">${lang === "bn" ? "📞 চেম্বারের সময় জানতে কল করুন" : "📞 Call for chamber time"}</a>`}
     </div>`).join("") || `<p class="doc-empty">${lang === "bn"
