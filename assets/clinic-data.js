@@ -39,7 +39,8 @@ window.CLINIC = {
     neuro:  { bn: "নিউরো সার্জারি",       en: "Neurosurgery" },
     onco:   { bn: "ক্যান্সার",            en: "Cancer" },
     radio:  { bn: "আল্ট্রাসাউন্ড",        en: "Ultrasound" },
-    psych:  { bn: "মনোবিজ্ঞান ও কাউন্সেলিং", en: "Psychology & Counselling" }
+    psych:  { bn: "মনোবিজ্ঞান ও কাউন্সেলিং", en: "Psychology & Counselling" },
+    ivf:    { bn: "বন্ধ্যাত্ব ও IVF",       en: "Infertility & IVF" }
   },
 
   // From the hospital's doctor lists (two flyers). Names exactly as printed.
@@ -49,6 +50,7 @@ window.CLINIC = {
   // shareholder: hospital shareholder, shown first with a ★ Shareholder badge.
   // shOrder: optional position among shareholders (1 = first); the rest follow in list order.
   // reg: optional line shown under the name (e.g. registration number).
+  // tbn: Bangla chamber time when time is not "3pm–9pm". from: first chamber day (YYYY-MM-DD) for a newly joining doctor.
   // page: optional own landing page (e.g. for ads), linked from the card.
   // photo: optional portrait (square, about 320px); the initials circle shows without it.
   // notMbbs: not an MBBS doctor (no "Dr."), left out of the "specialist doctors" count.
@@ -101,6 +103,7 @@ window.CLINIC = {
     { name: "Dr. Md. Nazmul Kabir", nbn: "ডাঃ মোঃ নাজমুল কবির", dept: "med", status: "visiting", time: null, fee: "800", deg: "MBBS, BCS (Health), FCPS (Medicine), Associate Professor; trained in Neuromedicine (NINS, Dhaka)", sbn: "মেডিসিন ও নিউরোমেডিসিন বিশেষজ্ঞ; সহযোগী অধ্যাপক", sen: "Medicine Specialist (trained in Neuromedicine); Associate Professor", work: "Khulna Medical College & Hospital, Khulna" },
     { name: "Dr. Arina Shorani Mousi", photo: "assets/img/doctors/arina-shorani-mousi.jpg", nbn: "ডাঃ এরিনা স্মরনী মৌসি", aka: "Erina Smoroni আরিনা", dept: "med", status: "regular", time: null, fee: "500", deg: "MBBS, BCS (Health), FCPS (Medicine-Final part)", sbn: "মেডিসিন", sen: "Medicine", work: "Medical Officer, Khulna Medical College Hospital, Khulna" },
     { name: "Dr. Sudip Bala", shareholder: true, shOrder: 6, photo: "assets/img/doctors/sudip-bala-2.jpg", nbn: "ডাঃ সুদীপ বালা", dept: "gyn", status: "regular", time: null, fee: "600", deg: "MBBS, BCS (Health), EOC (Gyn & Ob)", sbn: "গাইনি ও প্রসূতি", sen: "Gynae & Obstetrics" },
-    { name: "Dr. Shamme Nasrin", photo: "assets/img/doctors/shamme-nasrin.jpg", nbn: "ডাঃ শাম্মী নাসরিন", aka: "Shammi Nasreen", dept: "gyn", status: "regular", time: null, fee: "500", deg: "MBBS, PGT (Gynae & Obs.)", sbn: "গাইনি ও প্রসূতি", sen: "Gynae & Obstetrics", work: "Medical Officer, Community Care Hospital & Diagnostic" }
+    { name: "Dr. Shamme Nasrin", photo: "assets/img/doctors/shamme-nasrin.jpg", nbn: "ডাঃ শাম্মী নাসরিন", aka: "Shammi Nasreen", dept: "gyn", status: "regular", time: null, fee: "500", deg: "MBBS, PGT (Gynae & Obs.)", sbn: "গাইনি ও প্রসূতি", sen: "Gynae & Obstetrics", work: "Medical Officer, Community Care Hospital & Diagnostic" },
+    { name: "Dr. Anuka Ray", page: "dr/anuka-ray/", photo: "assets/img/doctors/anuka-ray.jpg", nbn: "ডাঃ অনুকা রায়", aka: "আনুকা Anuka Roy infertility IVF IUI ICSI বন্ধ্যাত্ব সন্তান টেস্টটিউব", dept: "ivf", status: "regular", time: "Fri 10am–4pm", tbn: "শুক্রবার, সকাল ১০টা – বিকাল ৪টা", from: "2026-11-20", fee: null, highlight: true, reg: "BMDC Reg: A-48946", deg: "MBBS, BCS (Health), DGO, FCPS (Gynae & Obs), DMU, TVS, Anomaly Scan, Color Doppler; Fellowship in Infertility (Bengaluru, India); Fellowship in Gynaecological Laparoscopy (Chennai); Special Training on IUI, IVF, ICSI (India)", sbn: "বন্ধ্যাত্ব ও IVF বিশেষজ্ঞ; ল্যাপারোস্কোপিক ও হিস্টেরোস্কোপিক সার্জন", sen: "Infertility & IVF Specialist; Laparoscopic & Hysteroscopic Surgeon" }
   ]
 };

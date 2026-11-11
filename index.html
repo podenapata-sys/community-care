@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>কমিউনিটি কেয়ার হাসপাতাল, খুলনা — অনলাইনে ডাক্তারের সিরিয়াল</title>
-<meta name="description" content="কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক, তেঁতুলতলা মোড়, খুলনা। ৪২ জন বিশেষজ্ঞ ডাক্তারের সিরিয়াল অনলাইনে নিন। Community Care Hospital & Diagnostic, Khulna — book doctor appointments online.">
+<meta name="description" content="কমিউনিটি কেয়ার হাসপাতাল এন্ড ডায়াগনস্টিক, তেঁতুলতলা মোড়, খুলনা। ৪৩ জন বিশেষজ্ঞ ডাক্তারের সিরিয়াল অনলাইনে নিন। Community Care Hospital & Diagnostic, Khulna — book doctor appointments online.">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#0d2470">
 <link rel="icon" type="image/png" href="assets/logo-mark.png">
@@ -212,6 +212,7 @@
   .doc .btn { margin: auto 0 0; }
   .doc .js-book { margin-bottom: 20px; }
   .doc .call-link { font-size: 12px; color: var(--indigo); margin: -10px 0 18px; }
+  .doc .info .from { font-weight: 700; color: var(--teal); }
   .doc .profile-link { font-size: 14px; font-weight: 600; color: var(--indigo); margin: -4px 0 12px; }
   .doc .profile-link:hover { text-decoration: underline; }
   .star-badge.sh { background: var(--ink-deep); color: #ffd36b; }
@@ -470,7 +471,7 @@ function imgOk(img) { img.closest(".ph-img").classList.add("ok"); img.closest(".
     </div>
     </div>
     <div class="stats">
-      <div class="stat reveal"><i aria-hidden="true">🩺</i><b class="count js-doc-count" data-suffix="+">42+</b><span data-bn="বিশেষজ্ঞ ডাক্তার" data-en="Specialist doctors"></span></div>
+      <div class="stat reveal"><i aria-hidden="true">🩺</i><b class="count js-doc-count" data-suffix="+">43+</b><span data-bn="বিশেষজ্ঞ ডাক্তার" data-en="Specialist doctors"></span></div>
       <div class="stat reveal"><i aria-hidden="true">🏥</i><b class="count js-dept-count">15</b><span data-bn="চিকিৎসা বিভাগ" data-en="Departments"></span></div>
       <div class="stat reveal"><i aria-hidden="true">🌙</i><b class="count" data-to="24" data-suffix="/7">24/7</b><span data-bn="অনলাইন সিরিয়াল" data-en="Online booking"></span></div>
       <div class="stat reveal"><i aria-hidden="true">⚡</i><b class="count" data-to="2" data-bnsuffix=" মিনিট" data-ensuffix=" min">2</b><span data-bn="সিরিয়াল নিতে সময়" data-en="To book a serial"></span></div>
@@ -704,7 +705,8 @@ function renderLists() {
   const limit = docFilter === "all" && !showAllDocs && !docQuery ? 12 : docs.length;
   const bnNum = n => lang === "bn" ? Number(n).toLocaleString("bn-BD") : String(n);
   const fee = f => lang === "bn" ? f.replace(/\d+/g, n => bnNum(+n)) : f;
-  const time = t => lang === "bn" && t === "3pm–9pm" ? "বিকাল ৩টা – রাত ৯টা" : t;
+  const time = (t, d) => lang === "bn" && t === "3pm–9pm" ? "বিকাল ৩টা – রাত ৯টা" : lang === "bn" && d && d.tbn ? d.tbn : t;
+  const fromLabel = d => new Date(d.from + "T00:00:00Z").toLocaleDateString(lang === "bn" ? "bn-BD" : "en-GB", { day: "numeric", month: "long", timeZone: "UTC" });
   const statusLabel = { regular: ["নিয়মিত", "Regular"], visiting: ["ভিজিটিং কনসালট্যান্ট", "Visiting Consultant"], both: ["নিয়মিত / ভিজিটিং", "Regular / Visiting"] };
   document.getElementById("doctorsGrid").innerHTML = docs.slice(0, limit).map(({ d, i }) => `
     <div class="card doc${d.shareholder ? " hl sh" : d.highlight ? " hl" : ""}">
@@ -721,7 +723,8 @@ function renderLists() {
       </div>
       ${d.work ? `<div class="work">🏥 ${esc(d.work)}</div>` : ""}
       <div class="info">
-        ${d.time ? `<span>🕒 ${esc(time(d.time))}</span>` : ""}
+        ${d.from && d.from > dhakaToday() ? `<span class="from">🆕 ${lang === "bn" ? fromLabel(d) + " থেকে" : "From " + fromLabel(d)}</span>` : ""}
+        ${d.time ? `<span>🕒 ${esc(time(d.time, d))}</span>` : ""}
         ${d.fee ? `<span>💳 ${lang === "bn" ? "ভিজিট ফি" : "Fee"} ৳${esc(fee(d.fee))}</span>` : ""}
       </div>
       ${d.page ? `<a href="${esc(d.page)}" class="profile-link">${lang === "bn" ? "সম্পূর্ণ প্রোফাইল দেখুন →" : "View full profile →"}</a>` : ""}
@@ -769,7 +772,8 @@ function updateHint() {
   const d = kind === "doc" ? CONFIG.doctors[+ix] : null;
   if (!d || !(d.fee || d.time)) { hint.hidden = true; return; }
   const bnN = t => lang === "bn" ? String(t).replace(/\d/g, c => "০১২৩৪৫৬৭৮৯"[c]) : t;
-  const time = d.time === "3pm–9pm" ? (lang === "bn" ? "বিকাল ৩টা – রাত ৯টা" : "3 PM – 9 PM") : d.time;
+  const time = d.time === "3pm–9pm" ? (lang === "bn" ? "বিকাল ৩টা – রাত ৯টা" : "3 PM – 9 PM") : (lang === "bn" && d.tbn) || d.time;
+  if (d.from && dateInput.value < d.from) dateInput.value = d.from;   // a newly joining doctor can be booked only from their first day
   hint.textContent = [d.fee ? (lang === "bn" ? "ভিজিট ফি ৳" : "Fee ৳") + bnN(d.fee) : "", d.time ? (lang === "bn" ? "সময়: " : "Time: ") + time : ""].filter(Boolean).join(" · ");
   hint.hidden = false;
 }
